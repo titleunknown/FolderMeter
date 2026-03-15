@@ -90,4 +90,4 @@ If you find FolderMeter useful, consider supporting development:
 ---
 
 <p align="center">
-  Made by <a href="https://www.fainimade.com">FAINI MADE</a>
+  By <a href="https://www.fainimade.com">FAINI MADE</a>

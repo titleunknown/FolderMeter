@@ -34,19 +34,34 @@
 
 ---
 
-## Requirements
+## How to Get It
 
-- macOS 14.0 (Sonoma) or later
-- Xcode 15+
+### Download the latest release
 
-## Building
+The easiest way to get started is to download the pre-built app directly from the [Releases](../../releases/latest) page. No Xcode required.
+
+1. Download `FolderMeter.zip` from the latest release
+2. Unzip and move `FolderMeter.app` to your Applications folder
+3. Launch it
+
+### First Launch
+
+Since FolderMeter is not distributed through the App Store, macOS may block it on first launch. If that happens:
+
+1. Go to **System Settings → Privacy & Security**
+2. Scroll down and click **Open Anyway** next to the FolderMeter message
+3. You'll only need to do this once
+
+When you pick a folder for the first time, macOS will ask if FolderMeter can access it. Click **Allow**. That's the only permission it needs — no Full Disk Access required.
+
+### Build from source
+
+Requires macOS 14.0+ and Xcode 15+.
 
 1. Clone the repo
 2. Open `FolderMeter.xcodeproj` in Xcode
 3. Set your development team in **Signing & Capabilities**
-4. Add the entitlement `com.apple.security.files.user-selected.read-only`
-5. Set deployment target to **macOS 14.0**
-6. Build & Run (`⌘R`)
+4. Build & Run (`⌘R`)
 
 ---
 
@@ -91,3 +106,4 @@ If you find FolderMeter useful, consider supporting development:
 
 <p align="center">
   By <a href="https://www.fainimade.com">FAINI MADE</a>
+</p>

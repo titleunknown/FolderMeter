@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import AppKit
 
 // MARK: - Data Models
 
@@ -9,6 +10,9 @@ struct FolderInfo: Identifiable {
     let path: URL
     let size: Int64
     let fileCount: Int
+    let rawCount: Int
+    let jpgCount: Int
+    let subfolderCount: Int  // direct subfolders, excluding CaptureOne system dirs
     let isRaw: Bool
 
     var formattedSize: String {
@@ -31,6 +35,217 @@ struct CaptureOneSession {
     let otherFolders: [URL]
 }
 
+// MARK: - Static helpers (no actor isolation needed)
+
+private let kRawExtensions: Set<String> = [
+    "raw", "cr2", "cr3", "nef", "arw", "orf", "rw2", "dng",
+    "raf", "3fr", "fff", "iiq", "mrw", "nrw", "pef", "rwl",
+    "sr2", "srf", "x3f", "erf"
+]
+
+private let kJpgExtensions: Set<String> = ["jpg", "jpeg"]
+
+private let kC1FolderNames: Set<String> = [
+    "Capture", "Output", "Trash", "Selects", "Cache"
+]
+
+// Folders created by Capture One software itself — excluded from counts
+private let kC1SystemDirs: Set<String> = ["CaptureOne"]
+
+private func computeDetectMode(root: URL) -> SessionMode {
+    let fm = FileManager.default
+    guard let contents = try? fm.contentsOfDirectory(
+        at: root,
+        includingPropertiesForKeys: [.isDirectoryKey],
+        options: .skipsHiddenFiles
+    ) else { return .generic(root: root) }
+
+    let subDirNames = Set(contents.compactMap { url -> String? in
+        var isDir: ObjCBool = false
+        fm.fileExists(atPath: url.path, isDirectory: &isDir)
+        return isDir.boolValue ? url.lastPathComponent : nil
+    })
+
+    let hasCapture = subDirNames.contains("Capture")
+    let hasOutput  = subDirNames.contains("Output")
+    let hasTrash   = subDirNames.contains("Trash")
+    let isC1 = hasCapture || (hasOutput && hasTrash)
+
+    if isC1 {
+        let session = CaptureOneSession(
+            root: root,
+            captureFolder: hasCapture ? root.appendingPathComponent("Capture") : nil,
+            outputFolder:  hasOutput  ? root.appendingPathComponent("Output")  : nil,
+            trashFolder:   hasTrash   ? root.appendingPathComponent("Trash")   : nil,
+            selectsFolder: subDirNames.contains("Selects") ? root.appendingPathComponent("Selects") : nil,
+            otherFolders: contents.filter {
+                var isDir: ObjCBool = false
+                fm.fileExists(atPath: $0.path, isDirectory: &isDir)
+                return isDir.boolValue && !kC1FolderNames.contains($0.lastPathComponent)
+            }
+        )
+        return .captureOne(session: session)
+    }
+
+    return .generic(root: root)
+}
+
+private func computeStats(mode: SessionMode) -> (total: Int64, rawCount: Int, jpgCount: Int, folders: [FolderInfo]) {
+    switch mode {
+    case .captureOne(let session): return computeC1Stats(session: session)
+    case .generic(let root):       return computeGenericStats(root: root)
+    case .none:                    return (0, 0, 0, [])
+    }
+}
+
+private func computeC1Stats(session: CaptureOneSession) -> (Int64, Int, Int, [FolderInfo]) {
+    var folders: [FolderInfo] = []
+    var totalSize: Int64 = 0
+    var totalRaw = 0
+    var totalJpg = 0
+
+    let named: [(URL?, String, Bool)] = [
+        (session.captureFolder, "Capture", true),
+        (session.outputFolder,  "Output",  false),
+        (session.trashFolder,   "Trash",   false),
+        (session.selectsFolder, "Selects", false),
+    ]
+
+    for (url, name, isRaw) in named {
+        guard let url else { continue }
+        let s = folderStats(url: url)
+        totalSize += s.size
+        if isRaw { totalRaw += s.rawCount }
+        totalJpg += s.jpgCount
+        folders.append(FolderInfo(
+            name: name, path: url,
+            size: s.size, fileCount: s.count,
+            rawCount: s.rawCount, jpgCount: s.jpgCount,
+            subfolderCount: s.subfolderCount, isRaw: isRaw
+        ))
+    }
+
+    for url in session.otherFolders {
+        let s = folderStats(url: url)
+        totalSize += s.size
+        totalRaw  += s.rawCount
+        totalJpg  += s.jpgCount
+        folders.append(FolderInfo(
+            name: url.lastPathComponent, path: url,
+            size: s.size, fileCount: s.count,
+            rawCount: s.rawCount, jpgCount: s.jpgCount,
+            subfolderCount: s.subfolderCount, isRaw: false
+        ))
+    }
+
+    return (totalSize, totalRaw, totalJpg, folders)
+}
+
+private func computeGenericStats(root: URL) -> (Int64, Int, Int, [FolderInfo]) {
+    let fm = FileManager.default
+    var folders: [FolderInfo] = []
+    var totalSize: Int64 = 0
+    var totalRaw = 0
+    var totalJpg = 0
+
+    guard let contents = try? fm.contentsOfDirectory(
+        at: root,
+        includingPropertiesForKeys: [.isDirectoryKey],
+        options: .skipsHiddenFiles
+    ) else { return (0, 0, 0, []) }
+
+    let rootStats = folderStats(url: root, topLevelOnly: true)
+    totalSize += rootStats.size
+    totalRaw  += rootStats.rawCount
+    totalJpg  += rootStats.jpgCount
+
+    for url in contents {
+        var isDir: ObjCBool = false
+        fm.fileExists(atPath: url.path, isDirectory: &isDir)
+        guard isDir.boolValue else { continue }
+        let s = folderStats(url: url)
+        totalSize += s.size
+        totalRaw  += s.rawCount
+        totalJpg  += s.jpgCount
+        folders.append(FolderInfo(
+            name: url.lastPathComponent, path: url,
+            size: s.size, fileCount: s.count,
+            rawCount: s.rawCount, jpgCount: s.jpgCount,
+            subfolderCount: s.subfolderCount, isRaw: s.rawCount > 0
+        ))
+    }
+
+    if rootStats.count > 0 {
+        folders.insert(FolderInfo(
+            name: "Root Files", path: root,
+            size: rootStats.size, fileCount: rootStats.count,
+            rawCount: rootStats.rawCount, jpgCount: rootStats.jpgCount,
+            subfolderCount: 0, isRaw: rootStats.rawCount > 0
+        ), at: 0)
+    }
+
+    return (totalSize, totalRaw, totalJpg, folders.sorted { $0.size > $1.size })
+}
+
+private func folderStats(url: URL, topLevelOnly: Bool = false) -> (size: Int64, count: Int, rawCount: Int, jpgCount: Int, subfolderCount: Int) {
+    let fm = FileManager.default
+    var size: Int64 = 0
+    var count = 0
+    var rawCount = 0
+    var jpgCount = 0
+
+    // Count direct subfolders, skipping CaptureOne system dirs
+    let subfolderCount: Int = {
+        guard let contents = try? fm.contentsOfDirectory(
+            at: url,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: .skipsHiddenFiles
+        ) else { return 0 }
+        return contents.filter {
+            var isDir: ObjCBool = false
+            fm.fileExists(atPath: $0.path, isDirectory: &isDir)
+            return isDir.boolValue && !kC1SystemDirs.contains($0.lastPathComponent)
+        }.count
+    }()
+
+    let fileKeys: Set<URLResourceKey> = [.fileSizeKey, .isRegularFileKey]
+
+    if topLevelOnly {
+        guard let contents = try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: Array(fileKeys), options: .skipsHiddenFiles) else {
+            return (0, 0, 0, 0, subfolderCount)
+        }
+        for f in contents {
+            guard let v = try? f.resourceValues(forKeys: fileKeys), v.isRegularFile == true else { continue }
+            size += Int64(v.fileSize ?? 0)
+            count += 1
+            let ext = f.pathExtension.lowercased()
+            if kRawExtensions.contains(ext) { rawCount += 1 }
+            if kJpgExtensions.contains(ext) { jpgCount += 1 }
+        }
+        return (size, count, rawCount, jpgCount, subfolderCount)
+    }
+
+    // Recursive enumeration — skip CaptureOne system dirs entirely
+    let enumerator = fm.enumerator(at: url, includingPropertiesForKeys: Array(fileKeys), options: .skipsHiddenFiles)
+    guard let enumerator else {
+        return (0, 0, 0, 0, subfolderCount)
+    }
+    for case let f as URL in enumerator {
+        // Skip the CaptureOne dir and all its contents
+        if kC1SystemDirs.contains(f.lastPathComponent) {
+            enumerator.skipDescendants()
+            continue
+        }
+        guard let v = try? f.resourceValues(forKeys: fileKeys), v.isRegularFile == true else { continue }
+        size += Int64(v.fileSize ?? 0)
+        count += 1
+        let ext = f.pathExtension.lowercased()
+        if kRawExtensions.contains(ext) { rawCount += 1 }
+        if kJpgExtensions.contains(ext) { jpgCount += 1 }
+    }
+    return (size, count, rawCount, jpgCount, subfolderCount)
+}
+
 // MARK: - FolderMonitor
 
 @MainActor
@@ -38,54 +253,57 @@ class FolderMonitor: ObservableObject {
     @Published var sessionMode: SessionMode = .none
     @Published var totalSize: Int64 = 0
     @Published var totalRawCount: Int = 0
+    @Published var totalJpgCount: Int = 0
     @Published var subfolders: [FolderInfo] = []
     @Published var isLoading: Bool = false
     @Published var rootPath: URL? {
         didSet { onRootPathChanged() }
     }
 
-    private var watchSource: DispatchSourceFileSystemObject?
-    private var watchDescriptor: Int32 = -1
-    private let queue = DispatchQueue(label: "com.foldermeter.watcher", qos: .background)
-
-    // RAW file extensions
-    private let rawExtensions: Set<String> = [
-        "raw", "cr2", "cr3", "nef", "arw", "orf", "rw2", "dng",
-        "raf", "3fr", "fff", "iiq", "mrw", "nrw", "pef", "rwl",
-        "sr2", "srf", "x3f", "erf"
-    ]
-
-    // Capture One known subfolder names
-    private let c1FolderNames: Set<String> = [
-        "Capture", "Output", "Trash", "Selects", "Cache"
-    ]
+    private var watchSources: [DispatchSourceFileSystemObject] = []
+    private let watchQueue = DispatchQueue(label: "com.foldermeter.watcher", qos: .background)
+    private var debounceWorkItem: DispatchWorkItem?
 
     init() {
         loadSavedPath()
     }
 
-    // MARK: - Path Persistence
+    // MARK: - Persistence
 
     private func loadSavedPath() {
-        if let savedPath = UserDefaults.standard.string(forKey: "watchedFolderPath") {
-            let url = URL(fileURLWithPath: savedPath)
+        if let saved = UserDefaults.standard.string(forKey: "watchedFolderPath") {
+            let url = URL(fileURLWithPath: saved)
             if FileManager.default.fileExists(atPath: url.path) {
                 rootPath = url
             }
         }
     }
 
-    func selectFolder() {
-        let panel = NSOpenPanel()
-        panel.canChooseDirectories = true
-        panel.canChooseFiles = false
-        panel.allowsMultipleSelection = false
-        panel.title = "Choose a folder to monitor"
-        panel.prompt = "Monitor"
+    // MARK: - Folder Selection
 
-        if panel.runModal() == .OK, let url = panel.url {
-            UserDefaults.standard.set(url.path, forKey: "watchedFolderPath")
-            rootPath = url
+    func selectFolder() {
+        // Hide the MenuBarExtra window without closing it (closing kills the app)
+        NSApp.keyWindow?.orderOut(nil)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            NSApp.activate(ignoringOtherApps: true)
+
+            let panel = NSOpenPanel()
+            panel.canChooseDirectories = true
+            panel.canChooseFiles = false
+            panel.allowsMultipleSelection = false
+            panel.title = "Choose a folder to monitor"
+            panel.prompt = "Monitor"
+            panel.center()
+            panel.makeKeyAndOrderFront(nil)
+
+            panel.begin { [weak self] response in
+                guard response == .OK, let url = panel.url else { return }
+                UserDefaults.standard.set(url.path, forKey: "watchedFolderPath")
+                Task { @MainActor in
+                    self?.rootPath = url
+                }
+            }
         }
     }
 
@@ -96,7 +314,13 @@ class FolderMonitor: ObservableObject {
         sessionMode = .none
         totalSize = 0
         totalRawCount = 0
+        totalJpgCount = 0
         subfolders = []
+    }
+
+    func forceRefresh() {
+        guard let root = rootPath else { return }
+        refresh(root: root)
     }
 
     // MARK: - Path Changed
@@ -104,221 +328,79 @@ class FolderMonitor: ObservableObject {
     private func onRootPathChanged() {
         stopWatching()
         guard let root = rootPath else { return }
-        detectModeAndRefresh(root: root)
+        refresh(root: root)
         startWatching(root: root)
     }
 
-    // MARK: - Mode Detection
+    // MARK: - Refresh
 
-    private func detectModeAndRefresh(root: URL) {
+    private func refresh(root: URL) {
         isLoading = true
-        queue.async { [weak self] in
-            guard let self else { return }
-            let mode = self.detectMode(root: root)
-            let (total, rawCount, folders) = self.calculateStats(mode: mode)
-
-            Task { @MainActor in
+        let capturedRoot = root
+        Task.detached(priority: .userInitiated) { [weak self] in
+            let mode = computeDetectMode(root: capturedRoot)
+            let (total, rawCount, jpgCount, folders) = computeStats(mode: mode)
+            await MainActor.run { [weak self] in
+                guard let self else { return }
                 self.sessionMode = mode
                 self.totalSize = total
                 self.totalRawCount = rawCount
+                self.totalJpgCount = jpgCount
                 self.subfolders = folders
                 self.isLoading = false
             }
         }
     }
 
-    private func detectMode(root: URL) -> SessionMode {
-        let fm = FileManager.default
-        guard let contents = try? fm.contentsOfDirectory(
-            at: root,
-            includingPropertiesForKeys: [.isDirectoryKey],
-            options: .skipsHiddenFiles
-        ) else { return .generic(root: root) }
-
-        let subDirNames = Set(contents.compactMap { url -> String? in
-            var isDir: ObjCBool = false
-            fm.fileExists(atPath: url.path, isDirectory: &isDir)
-            return isDir.boolValue ? url.lastPathComponent : nil
-        })
-
-        // Detect C1 session: must have at least "Capture" or both "Output" + "Trash"
-        let hasCapture = subDirNames.contains("Capture")
-        let hasOutput = subDirNames.contains("Output")
-        let hasTrash = subDirNames.contains("Trash")
-
-        let isC1 = hasCapture || (hasOutput && hasTrash)
-
-        if isC1 {
-            let c1Session = CaptureOneSession(
-                root: root,
-                captureFolder: hasCapture ? root.appendingPathComponent("Capture") : nil,
-                outputFolder: hasOutput ? root.appendingPathComponent("Output") : nil,
-                trashFolder: hasTrash ? root.appendingPathComponent("Trash") : nil,
-                selectsFolder: subDirNames.contains("Selects") ? root.appendingPathComponent("Selects") : nil,
-                otherFolders: contents.filter {
-                    var isDir: ObjCBool = false
-                    fm.fileExists(atPath: $0.path, isDirectory: &isDir)
-                    return isDir.boolValue && !c1FolderNames.contains($0.lastPathComponent)
-                }
-            )
-            return .captureOne(session: c1Session)
-        }
-
-        return .generic(root: root)
-    }
-
-    // MARK: - Stats Calculation
-
-    private func calculateStats(mode: SessionMode) -> (Int64, Int, [FolderInfo]) {
-        switch mode {
-        case .captureOne(let session):
-            return calculateC1Stats(session: session)
-        case .generic(let root):
-            return calculateGenericStats(root: root)
-        case .none:
-            return (0, 0, [])
-        }
-    }
-
-    private func calculateC1Stats(session: CaptureOneSession) -> (Int64, Int, [FolderInfo]) {
-        var allFolders: [FolderInfo] = []
-        var totalSize: Int64 = 0
-        var totalRaw: Int = 0
-
-        let namedFolders: [(URL?, String, Bool)] = [
-            (session.captureFolder, "Capture", true),
-            (session.outputFolder, "Output", false),
-            (session.trashFolder, "Trash", false),
-            (session.selectsFolder, "Selects", false),
-        ]
-
-        for (url, name, isRaw) in namedFolders {
-            guard let url else { continue }
-            let (size, count, rawCount) = folderStats(url: url)
-            totalSize += size
-            if isRaw { totalRaw += rawCount }
-            allFolders.append(FolderInfo(name: name, path: url, size: size, fileCount: count, isRaw: isRaw))
-        }
-
-        for url in session.otherFolders {
-            let (size, count, rawCount) = folderStats(url: url)
-            totalSize += size
-            totalRaw += rawCount
-            allFolders.append(FolderInfo(name: url.lastPathComponent, path: url, size: size, fileCount: count, isRaw: false))
-        }
-
-        return (totalSize, totalRaw, allFolders)
-    }
-
-    private func calculateGenericStats(root: URL) -> (Int64, Int, [FolderInfo]) {
-        let fm = FileManager.default
-        var allFolders: [FolderInfo] = []
-        var totalSize: Int64 = 0
-        var totalRaw: Int = 0
-
-        guard let contents = try? fm.contentsOfDirectory(
-            at: root,
-            includingPropertiesForKeys: [.isDirectoryKey],
-            options: .skipsHiddenFiles
-        ) else { return (0, 0, []) }
-
-        // Top-level files in root
-        let (rootSize, rootCount, rootRaw) = folderStats(url: root, topLevelOnly: true)
-        totalSize += rootSize
-        totalRaw += rootRaw
-
-        for url in contents {
-            var isDir: ObjCBool = false
-            fm.fileExists(atPath: url.path, isDirectory: &isDir)
-            if isDir.boolValue {
-                let (size, count, rawCount) = folderStats(url: url)
-                totalSize += size
-                totalRaw += rawCount
-                allFolders.append(FolderInfo(name: url.lastPathComponent, path: url, size: size, fileCount: count, isRaw: rawCount > 0))
-            }
-        }
-
-        if rootCount > 0 {
-            allFolders.insert(FolderInfo(name: "Root Files", path: root, size: rootSize, fileCount: rootCount, isRaw: rootRaw > 0), at: 0)
-        }
-
-        return (totalSize, totalRaw, allFolders.sorted { $0.size > $1.size })
-    }
-
-    private func folderStats(url: URL, topLevelOnly: Bool = false) -> (size: Int64, count: Int, rawCount: Int) {
-        let fm = FileManager.default
-        var totalSize: Int64 = 0
-        var totalCount = 0
-        var rawCount = 0
-
-        if topLevelOnly {
-            guard let contents = try? fm.contentsOfDirectory(
-                at: url,
-                includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey],
-                options: .skipsHiddenFiles
-            ) else { return (0, 0, 0) }
-
-            for fileURL in contents {
-                guard let values = try? fileURL.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey]),
-                      values.isRegularFile == true else { continue }
-                totalSize += Int64(values.fileSize ?? 0)
-                totalCount += 1
-                if rawExtensions.contains(fileURL.pathExtension.lowercased()) { rawCount += 1 }
-            }
-            return (totalSize, totalCount, rawCount)
-        }
-
-        guard let enumerator = fm.enumerator(
-            at: url,
-            includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey],
-            options: [.skipsHiddenFiles]
-        ) else { return (0, 0, 0) }
-
-        for case let fileURL as URL in enumerator {
-            guard let values = try? fileURL.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey]),
-                  values.isRegularFile == true else { continue }
-            totalSize += Int64(values.fileSize ?? 0)
-            totalCount += 1
-            if rawExtensions.contains(fileURL.pathExtension.lowercased()) { rawCount += 1 }
-        }
-
-        return (totalSize, totalCount, rawCount)
-    }
-
     // MARK: - File System Watching
 
     private func startWatching(root: URL) {
-        let fd = open(root.path, O_EVTONLY)
+        var dirs: [URL] = [root]
+        if let enumerator = FileManager.default.enumerator(
+            at: root,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: .skipsHiddenFiles
+        ) {
+            for case let url as URL in enumerator {
+                if (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true {
+                    dirs.append(url)
+                }
+            }
+        }
+        for dir in dirs { watchDirectory(dir) }
+    }
+
+    private func watchDirectory(_ url: URL) {
+        let fd = open(url.path, O_EVTONLY)
         guard fd >= 0 else { return }
 
-        watchDescriptor = fd
         let source = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: fd,
-            eventMask: [.write, .rename, .delete, .extend],
-            queue: queue
+            eventMask: [.write, .rename, .delete, .extend, .link],
+            queue: watchQueue
         )
-
-        source.setEventHandler { [weak self] in
-            guard let self else { return }
-            Task { @MainActor in
-                guard let root = self.rootPath else { return }
-                self.detectModeAndRefresh(root: root)
-            }
-        }
-
-        source.setCancelHandler { [weak self] in
-            if let fd = self?.watchDescriptor, fd >= 0 {
-                close(fd)
-                self?.watchDescriptor = -1
-            }
-        }
-
-        watchSource = source
+        source.setEventHandler { [weak self] in self?.scheduleRefresh() }
+        source.setCancelHandler { close(fd) }
+        watchSources.append(source)
         source.resume()
     }
 
+    private func scheduleRefresh() {
+        debounceWorkItem?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, let root = self.rootPath else { return }
+                self.refresh(root: root)
+            }
+        }
+        debounceWorkItem = work
+        watchQueue.asyncAfter(deadline: .now() + 0.5, execute: work)
+    }
+
     private func stopWatching() {
-        watchSource?.cancel()
-        watchSource = nil
+        debounceWorkItem?.cancel()
+        debounceWorkItem = nil
+        watchSources.forEach { $0.cancel() }
+        watchSources.removeAll()
     }
 }

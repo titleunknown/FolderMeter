@@ -1,7 +1,9 @@
 import SwiftUI
+import AppKit
 
 @main
 struct FolderMeterApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var folderMonitor = FolderMonitor()
 
     var body: some Scene {
@@ -18,5 +20,11 @@ struct FolderMeterApp: App {
             SettingsView()
                 .environmentObject(folderMonitor)
         }
+    }
+}
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
     }
 }

@@ -5,17 +5,14 @@ struct MenuBarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
             headerView
                 .padding(.horizontal, 16)
                 .padding(.top, 14)
                 .padding(.bottom, 10)
 
             if monitor.rootPath != nil {
-                Divider()
-                    .padding(.horizontal, 12)
+                Divider().padding(.horizontal, 12)
 
-                // Subfolder breakdown
                 if monitor.isLoading {
                     loadingView
                 } else if monitor.subfolders.isEmpty {
@@ -24,55 +21,69 @@ struct MenuBarView: View {
                     subfolderList
                 }
 
-                Divider()
-                    .padding(.horizontal, 12)
+                Divider().padding(.horizontal, 12)
             }
 
-            // Footer actions
             footerActions
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
         }
-        .frame(width: 280)
+        .frame(width: 300)
         .background(.regularMaterial)
     }
 
     // MARK: - Header
 
     private var headerView: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
+        HStack(alignment: .top, spacing: 0) {
+            // Left: mode label + session name
+            VStack(alignment: .leading, spacing: 4) {
                 modeLabel
-                Spacer()
-                if monitor.isLoading {
-                    ProgressView()
-                        .scaleEffect(0.6)
-                        .frame(width: 16, height: 16)
+                if let root = monitor.rootPath {
+                    Button {
+                        NSWorkspace.shared.open(root)
+                    } label: {
+                        Text(root.lastPathComponent)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                            .truncationMode(.middle)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Open in Finder")
                 }
             }
 
-            if let root = monitor.rootPath {
-                Text(root.lastPathComponent)
-                    .font(.system(size: 13, weight: .semibold))
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-            }
+            Spacer()
 
+            // Right: stacked odometer stats
             if monitor.rootPath != nil && !monitor.isLoading {
-                HStack(spacing: 16) {
-                    statPill(
-                        label: "Total",
+                VStack(alignment: .trailing, spacing: 6) {
+                    OdometerLabel(
                         value: ByteCountFormatter.string(fromByteCount: monitor.totalSize, countStyle: .file),
-                        color: .primary
+                        label: "TOTAL",
+                        color: .primary,
+                        size: 18
                     )
-                    if monitor.totalRawCount > 0 {
-                        statPill(
-                            label: "RAW files",
-                            value: "\(monitor.totalRawCount)",
-                            color: .orange
-                        )
+
+                    HStack(spacing: 10) {
+                        if monitor.totalRawCount > 0 {
+                            OdometerLabel(value: "\(monitor.totalRawCount)", label: "RAW", color: .orange, size: 15)
+                        }
+                        if monitor.totalRawCount > 0 && monitor.totalJpgCount > 0 {
+                            Rectangle()
+                                .fill(.secondary.opacity(0.3))
+                                .frame(width: 1, height: 24)
+                        }
+                        if monitor.totalJpgCount > 0 {
+                            OdometerLabel(value: "\(monitor.totalJpgCount)", label: "JPG", color: .blue, size: 15)
+                        }
                     }
                 }
+            } else if monitor.isLoading {
+                ProgressView()
+                    .scaleEffect(0.6)
+                    .frame(width: 20, height: 20)
             }
         }
     }
@@ -81,36 +92,14 @@ struct MenuBarView: View {
         HStack(spacing: 4) {
             switch monitor.sessionMode {
             case .captureOne:
-                Image(systemName: "camera.aperture")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.orange)
-                Text("Capture One Session")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.orange)
+                Image(systemName: "camera.aperture").font(.system(size: 10)).foregroundStyle(.orange)
+                Text("Capture One Session").font(.system(size: 10, weight: .medium)).foregroundStyle(.orange)
             case .generic:
-                Image(systemName: "folder")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-                Text("Folder")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
+                Image(systemName: "folder").font(.system(size: 10)).foregroundStyle(.secondary)
+                Text("Folder").font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
             case .none:
-                Text("No folder selected")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
+                Text("No folder selected").font(.system(size: 10)).foregroundStyle(.secondary)
             }
-        }
-    }
-
-    private func statPill(label: String, value: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(label)
-                .font(.system(size: 9, weight: .medium))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-            Text(value)
-                .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                .foregroundStyle(color)
         }
     }
 
@@ -132,9 +121,7 @@ struct MenuBarView: View {
             Spacer()
             VStack(spacing: 8) {
                 ProgressView()
-                Text("Calculating…")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                Text("Calculating…").font(.system(size: 11)).foregroundStyle(.secondary)
             }
             Spacer()
         }
@@ -144,9 +131,7 @@ struct MenuBarView: View {
     private var emptyView: some View {
         HStack {
             Spacer()
-            Text("No subfolders found")
-                .font(.system(size: 11))
-                .foregroundStyle(.secondary)
+            Text("No subfolders found").font(.system(size: 11)).foregroundStyle(.secondary)
             Spacer()
         }
         .padding(.vertical, 16)
@@ -163,40 +148,52 @@ struct MenuBarView: View {
                     .font(.system(size: 12))
             }
             .buttonStyle(.plain)
-            .foregroundStyle(.blue)
+            .foregroundStyle(.secondary)
 
             Spacer()
 
             if monitor.rootPath != nil {
-                Button {
-                    if let path = monitor.rootPath {
-                        NSWorkspace.shared.open(path)
-                    }
-                } label: {
-                    Image(systemName: "arrow.up.forward.square")
-                        .font(.system(size: 12))
+                Button { monitor.forceRefresh() } label: {
+                    Image(systemName: "arrow.clockwise").font(.system(size: 12))
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
-                .help("Open in Finder")
+                .help("Refresh")
 
-                Button {
-                    monitor.clearFolder()
-                } label: {
-                    Image(systemName: "xmark.circle")
-                        .font(.system(size: 12))
+                Button { monitor.clearFolder() } label: {
+                    Image(systemName: "xmark.circle").font(.system(size: 12))
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
                 .help("Remove")
             }
 
-            Button("Quit") {
-                NSApplication.shared.terminate(nil)
-            }
-            .buttonStyle(.plain)
-            .font(.system(size: 12))
-            .foregroundStyle(.secondary)
+            Button("Quit") { NSApplication.shared.terminate(nil) }
+                .buttonStyle(.plain)
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+// MARK: - Odometer Label
+
+struct OdometerLabel: View {
+    let value: String
+    let label: String
+    let color: Color
+    let size: CGFloat
+
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 1) {
+            Text(label)
+                .font(.system(size: 8, weight: .medium, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .tracking(1.2)
+            Text(value)
+                .font(.system(size: size, weight: .bold, design: .monospaced))
+                .foregroundStyle(color)
+                .monospacedDigit()
         }
     }
 }
@@ -215,42 +212,60 @@ struct FolderRow: View {
     private var barColor: Color {
         switch folder.name {
         case "Capture": return .orange
-        case "Output": return .blue
-        case "Trash": return .red
+        case "Output":  return .blue
+        case "Trash":   return .red
         case "Selects": return .green
-        default: return .secondary
+        default:        return .secondary
         }
     }
 
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                // Icon
                 Image(systemName: folderIcon)
                     .font(.system(size: 11))
                     .foregroundStyle(barColor)
                     .frame(width: 16)
 
-                // Name + count
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(folder.name)
-                        .font(.system(size: 12, weight: .medium))
-                        .lineLimit(1)
-                    HStack(spacing: 4) {
-                        Text("\(folder.fileCount) files")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
-                        if folder.isRaw {
-                            Text("· RAW")
-                                .font(.system(size: 10, weight: .medium))
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 5) {
+                        Text(folder.name)
+                            .font(.system(size: 12, weight: .medium))
+                            .lineLimit(1)
+                        if folder.name == "Capture" && folder.rawCount > 0 {
+                            Text("\(folder.rawCount) RAW")
+                                .font(.system(size: 10, weight: .semibold))
                                 .foregroundStyle(.orange)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 1)
+                                .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                        }
+                    }
+
+                    HStack(spacing: 6) {
+                        if folder.subfolderCount > 0 {
+                            Text("\(folder.subfolderCount) \(folder.subfolderCount == 1 ? "folder" : "folders")")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                        }
+                        if folder.subfolderCount > 0 && folder.jpgCount > 0 {
+                            Text("·").font(.system(size: 10)).foregroundStyle(.secondary)
+                        }
+                        if folder.jpgCount > 0 {
+                            Text("\(folder.jpgCount) JPG")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                        }
+                        if folder.subfolderCount == 0 && folder.jpgCount == 0 {
+                            Text("\(folder.fileCount) files")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }
 
                 Spacer()
 
-                // Size
                 Text(folder.formattedSize)
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .foregroundStyle(.primary)
@@ -258,14 +273,10 @@ struct FolderRow: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 7)
 
-            // Bar
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    Rectangle()
-                        .fill(Color.secondary.opacity(0.08))
-                    Rectangle()
-                        .fill(barColor.opacity(0.3))
-                        .frame(width: geo.size.width * fraction)
+                    Rectangle().fill(Color.secondary.opacity(0.08))
+                    Rectangle().fill(barColor.opacity(0.3)).frame(width: geo.size.width * fraction)
                 }
             }
             .frame(height: 2)
@@ -276,10 +287,10 @@ struct FolderRow: View {
     private var folderIcon: String {
         switch folder.name {
         case "Capture": return "camera.aperture"
-        case "Output": return "arrow.up.doc"
-        case "Trash": return "trash"
+        case "Output":  return "arrow.up.doc"
+        case "Trash":   return "trash"
         case "Selects": return "star"
-        default: return "folder"
+        default:        return "folder"
         }
     }
 }

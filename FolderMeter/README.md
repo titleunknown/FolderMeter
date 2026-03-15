@@ -1,17 +1,4 @@
-# FolderMeter
-
-A macOS 13+ menu bar app that monitors folder sizes in real time.
-
-## Features
-
-- **Live updates** via file system watching — no polling
-- **Auto-detects Capture One sessions** (Capture / Output / Trash / Selects)
-- **Falls back to generic mode** for any folder
-- Shows total size in the menu bar
-- Dropdown shows per-subfolder breakdown with proportional bars
-- RAW file count (CR2, CR3, NEF, ARW, DNG, and 15+ more formats)
-- "Open in Finder" shortcut
-- Persists your selected folder across launches<p align="center">
+<p align="center">
   <img src="folder meter icon.png" alt="FolderMeter" width="128" />
 </p>
 
@@ -29,7 +16,7 @@ A macOS 13+ menu bar app that monitors folder sizes in real time.
 </p>
 
 <p align="center">
-  <img src="Screenshot_Folder Meter .jpg" alt="FolderMeter screenshot" width="340" />
+  <img src="Screenshot_FolderMeter.jpg" alt="FolderMeter screenshot" width="340" />
 </p>
 
 ---
@@ -104,7 +91,20 @@ If you find FolderMeter useful, consider supporting development:
 
 <p align="center">
   Made by <a href="https://www.fainimade.com">FAINI MADE</a>
-</p>
+</p># FolderMeter
+
+A macOS 13+ menu bar app that monitors folder sizes in real time.
+
+## Features
+
+- **Live updates** via file system watching — no polling
+- **Auto-detects Capture One sessions** (Capture / Output / Trash / Selects)
+- **Falls back to generic mode** for any folder
+- Shows total size in the menu bar
+- Dropdown shows per-subfolder breakdown with proportional bars
+- RAW file count (CR2, CR3, NEF, ARW, DNG, and 15+ more formats)
+- "Open in Finder" shortcut
+- Persists your selected folder across launches
 
 ## Setup in Xcode
 

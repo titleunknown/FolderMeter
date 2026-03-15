@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="folder meter icon.png" alt="FolderMeter" width="128" />
+  <img src="folder-meter-icon.png" alt="FolderMeter" width="128" />
 </p>
 
 <h1 align="center">FolderMeter</h1>

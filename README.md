@@ -81,6 +81,9 @@ The `CaptureOne` system folder (proxies, cache, catalog) is excluded from all fi
 ## RAW Formats Supported
 
 `CR2 CR3 NEF ARW ORF RW2 DNG RAF 3FR FFF IIQ MRW NRW PEF RWL SR2 SRF X3F ERF RAW`
+## License
+
+FolderMeter is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Free for personal and non-commercial use. For commercial licensing contact [fainimade.com](https://www.fainimade.com).
 
 ---
 

@@ -16,9 +16,6 @@
 		2362373D2F66746000B702E5 /* MenuBarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 236237392F66746000B702E5 /* MenuBarLabel.swift */; };
 		2362373E2F66746000B702E5 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2362373A2F66746000B702E5 /* SettingsView.swift */; };
 		2362373F2F66746000B702E5 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2362373B2F66746000B702E5 /* MenuBarView.swift */; };
-		236237402F66746000B702E5 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 2362373C2F66746000B702E5 /* README.md */; };
-		23F335FB2F674B67006C3B17 /* folder meter icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 23F335FA2F674B67006C3B17 /* folder meter icon.png */; };
-		23F335FF2F6750DF006C3B17 /* Screenshot_FolderMeter.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 23F335FE2F6750DF006C3B17 /* Screenshot_FolderMeter.jpg */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,13 +24,13 @@
 		2362371A2F66730100B702E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2362371D2F66730100B702E5 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2362371F2F66730100B702E5 /* FolderMeter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FolderMeter.entitlements; sourceTree = "<group>"; };
-		236237332F66742900B702E5 /* FolderMeterApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FolderMeterApp.swift; path = ../../../../Downloads/FolderMeter/FolderMeterApp.swift; sourceTree = "<group>"; };
-		236237352F66743C00B702E5 /* FolderMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FolderMonitor.swift; path = ../../../../Downloads/FolderMeter/FolderMonitor.swift; sourceTree = "<group>"; };
-		236237372F66744F00B702E5 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../../../../Downloads/FolderMeter/Info.plist; sourceTree = "<group>"; };
-		236237392F66746000B702E5 /* MenuBarLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MenuBarLabel.swift; path = ../../../../Downloads/FolderMeter/MenuBarLabel.swift; sourceTree = "<group>"; };
-		2362373A2F66746000B702E5 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = ../../../../Downloads/FolderMeter/SettingsView.swift; sourceTree = "<group>"; };
-		2362373B2F66746000B702E5 /* MenuBarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = ../../../../Downloads/FolderMeter/MenuBarView.swift; sourceTree = "<group>"; };
-		2362373C2F66746000B702E5 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../../../Downloads/FolderMeter/README.md; sourceTree = "<group>"; };
+		236237332F66742900B702E5 /* FolderMeterApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FolderMeterApp.swift; sourceTree = "<group>"; };
+		236237352F66743C00B702E5 /* FolderMonitor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FolderMonitor.swift; sourceTree = "<group>"; };
+		236237372F66744F00B702E5 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		236237392F66746000B702E5 /* MenuBarLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuBarLabel.swift; sourceTree = "<group>"; };
+		2362373A2F66746000B702E5 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		2362373B2F66746000B702E5 /* MenuBarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		2362373C2F66746000B702E5 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		23F335FA2F674B67006C3B17 /* folder meter icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "folder meter icon.png"; path = "../../folder meter icon.png"; sourceTree = "<group>"; };
 		23F335FE2F6750DF006C3B17 /* Screenshot_FolderMeter.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Screenshot_FolderMeter.jpg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -68,18 +65,18 @@
 		236237152F66730100B702E5 /* FolderMeter */ = {
 			isa = PBXGroup;
 			children = (
-				23F335FE2F6750DF006C3B17 /* Screenshot_FolderMeter.jpg */,
-				23F335FA2F674B67006C3B17 /* folder meter icon.png */,
+				2362373C2F66746000B702E5 /* README.md */,
+				236237372F66744F00B702E5 /* Info.plist */,
+				236237182F66730100B702E5 /* ContentView.swift */,
 				236237332F66742900B702E5 /* FolderMeterApp.swift */,
 				236237352F66743C00B702E5 /* FolderMonitor.swift */,
-				236237372F66744F00B702E5 /* Info.plist */,
 				2362373B2F66746000B702E5 /* MenuBarView.swift */,
-				2362373C2F66746000B702E5 /* README.md */,
 				236237392F66746000B702E5 /* MenuBarLabel.swift */,
 				2362373A2F66746000B702E5 /* SettingsView.swift */,
-				236237182F66730100B702E5 /* ContentView.swift */,
 				2362371A2F66730100B702E5 /* Assets.xcassets */,
 				2362371F2F66730100B702E5 /* FolderMeter.entitlements */,
+				23F335FA2F674B67006C3B17 /* folder meter icon.png */,
+				23F335FE2F6750DF006C3B17 /* Screenshot_FolderMeter.jpg */,
 				2362371C2F66730100B702E5 /* Preview Content */,
 			);
 			path = FolderMeter;
@@ -152,11 +149,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				2362371E2F66730100B702E5 /* Preview Assets.xcassets in Resources */,
-				236237402F66746000B702E5 /* README.md in Resources */,
 				236237382F66744F00B702E5 /* Info.plist in Resources */,
 				2362371B2F66730100B702E5 /* Assets.xcassets in Resources */,
-				23F335FF2F6750DF006C3B17 /* Screenshot_FolderMeter.jpg in Resources */,
-				23F335FB2F674B67006C3B17 /* folder meter icon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -302,8 +296,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = FolderMeter/FolderMeter.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -312,14 +307,15 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FolderMeter;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 FAINI MADE. All rights reserved.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2;
+				MARKETING_VERSION = 0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "Faini-Made.FolderMeter";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -332,8 +328,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = FolderMeter/FolderMeter.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -342,14 +339,15 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FolderMeter;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 FAINI MADE. All rights reserved.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2;
+				MARKETING_VERSION = 0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "Faini-Made.FolderMeter";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

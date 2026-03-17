@@ -27,9 +27,18 @@ struct MenuBarView: View {
             footerActions
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
+
+            // About
+            Divider().padding(.horizontal, 12)
+            aboutSection
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
         }
         .frame(width: 300)
         .background(.regularMaterial)
+        .onAppear {
+            monitor.forceRefresh()
+        }
     }
 
     // MARK: - Header
@@ -41,7 +50,7 @@ struct MenuBarView: View {
                 modeLabel
                 if let root = monitor.rootPath {
                     Button {
-                        NSWorkspace.shared.open(root)
+                        NSWorkspace.shared.activateFileViewerSelecting([root])
                     } label: {
                         Text(root.lastPathComponent)
                             .font(.system(size: 13, weight: .semibold))
@@ -50,7 +59,7 @@ struct MenuBarView: View {
                             .truncationMode(.middle)
                     }
                     .buttonStyle(.plain)
-                    .help("Open in Finder")
+                    .help("Reveal in Finder")
                 }
             }
 
@@ -137,6 +146,74 @@ struct MenuBarView: View {
         .padding(.vertical, 16)
     }
 
+    // MARK: - About
+
+    private var aboutSection: some View {
+        HStack(spacing: 0) {
+            Text("FolderMeter")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text(" · by ")
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+            Button {
+                NSWorkspace.shared.open(URL(string: "https://www.fainimade.com")!)
+            } label: {
+                Text("FAINI MADE")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+                    .underline()
+            }
+            .buttonStyle(.plain)
+            .onHover { inside in
+                if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+            }
+
+            Spacer()
+
+            // Update button
+            switch monitor.updateState {
+            case .idle:
+                Button("Check for updates") { monitor.checkForUpdates() }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+
+            case .checking:
+                HStack(spacing: 4) {
+                    ProgressView().scaleEffect(0.5).frame(width: 12, height: 12)
+                    Text("Checking…")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                }
+
+            case .upToDate:
+                Text("Up to date")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.green)
+
+            case .available(let version, let url):
+                Button {
+                    NSWorkspace.shared.open(url)
+                } label: {
+                    Text("\(version) available")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.orange)
+                        .underline()
+                }
+                .buttonStyle(.plain)
+                .onHover { inside in
+                    if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+                }
+
+            case .error:
+                Text("Check failed")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+
     // MARK: - Footer
 
     private var footerActions: some View {
@@ -220,68 +297,82 @@ struct FolderRow: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                Image(systemName: folderIcon)
-                    .font(.system(size: 11))
-                    .foregroundStyle(barColor)
-                    .frame(width: 16)
+        Button {
+            NSWorkspace.shared.activateFileViewerSelecting([folder.path])
+        } label: {
+            VStack(spacing: 0) {
+                HStack(spacing: 10) {
+                    Image(systemName: folderIcon)
+                        .font(.system(size: 11))
+                        .foregroundStyle(barColor)
+                        .frame(width: 16)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 5) {
-                        Text(folder.name)
-                            .font(.system(size: 12, weight: .medium))
-                            .lineLimit(1)
-                        if folder.name == "Capture" && folder.rawCount > 0 {
-                            Text("\(folder.rawCount) RAW")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundStyle(.orange)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 1)
-                                .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 5) {
+                            Text(folder.name)
+                                .font(.system(size: 12, weight: .medium))
+                                .lineLimit(1)
+                            if folder.name == "Capture" && folder.rawCount > 0 {
+                                Text("\(folder.rawCount) RAW")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundStyle(.orange)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 1)
+                                    .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                            }
+                        }
+
+                        HStack(spacing: 6) {
+                            if folder.subfolderCount > 0 {
+                                Text("\(folder.subfolderCount) \(folder.subfolderCount == 1 ? "folder" : "folders")")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.secondary)
+                            }
+                            if folder.subfolderCount > 0 && (folder.rawCount > 0 || folder.jpgCount > 0) {
+                                Text("·").font(.system(size: 10)).foregroundStyle(.secondary)
+                            }
+                            if folder.rawCount > 0 {
+                                Text("\(folder.rawCount) RAW")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.secondary)
+                            }
+                            if folder.rawCount > 0 && folder.jpgCount > 0 {
+                                Text("·").font(.system(size: 10)).foregroundStyle(.secondary)
+                            }
+                            if folder.jpgCount > 0 {
+                                Text("\(folder.jpgCount) JPG")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.secondary)
+                            }
+                            if folder.subfolderCount == 0 && folder.rawCount == 0 && folder.jpgCount == 0 {
+                                Text("\(folder.fileCount) files")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
 
-                    HStack(spacing: 6) {
-                        if folder.subfolderCount > 0 {
-                            Text("\(folder.subfolderCount) \(folder.subfolderCount == 1 ? "folder" : "folders")")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.secondary)
-                        }
-                        if folder.subfolderCount > 0 && folder.jpgCount > 0 {
-                            Text("·").font(.system(size: 10)).foregroundStyle(.secondary)
-                        }
-                        if folder.jpgCount > 0 {
-                            Text("\(folder.jpgCount) JPG")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.secondary)
-                        }
-                        if folder.subfolderCount == 0 && folder.jpgCount == 0 {
-                            Text("\(folder.fileCount) files")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.secondary)
-                        }
+                    Spacer()
+
+                    Text(folder.formattedSize)
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(.primary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 7)
+
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Rectangle().fill(Color.secondary.opacity(0.08))
+                        Rectangle().fill(barColor.opacity(0.3)).frame(width: geo.size.width * fraction)
                     }
                 }
-
-                Spacer()
-
-                Text(folder.formattedSize)
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundStyle(.primary)
+                .frame(height: 2)
+                .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 7)
-
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Rectangle().fill(Color.secondary.opacity(0.08))
-                    Rectangle().fill(barColor.opacity(0.3)).frame(width: geo.size.width * fraction)
-                }
-            }
-            .frame(height: 2)
-            .padding(.horizontal, 16)
         }
+        .buttonStyle(.plain)
+        .help("Reveal in Finder")
     }
 
     private var folderIcon: String {

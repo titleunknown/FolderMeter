@@ -11,6 +11,7 @@ struct FolderInfo: Identifiable {
     let fileCount: Int
     let rawCount: Int
     let jpgCount: Int
+    let tiffCount: Int
     let subfolderCount: Int
     let isRaw: Bool
     var formattedSize: String { ByteCountFormatter.string(fromByteCount: size, countStyle: .file) }
@@ -35,6 +36,7 @@ struct CaptureOneSession {
 
 private let kRaw: Set<String> = ["raw","cr2","cr3","nef","arw","orf","rw2","dng","raf","3fr","fff","iiq","mrw","nrw","pef","rwl","sr2","srf","x3f","erf"]
 private let kJpg: Set<String> = ["jpg","jpeg"]
+private let kTiff: Set<String> = ["tiff","tif"]
 private let kC1System: Set<String> = ["CaptureOne"]
 
 private func detectMode(root: URL) -> SessionMode {
@@ -52,6 +54,7 @@ private struct ScanResult {
     let totalSize: Int64
     let rawCount: Int
     let jpgCount: Int
+    let tiffCount: Int
     let folders: [FolderInfo]
 }
 
@@ -59,42 +62,43 @@ private func scan(mode: SessionMode) -> ScanResult {
     switch mode {
     case .captureOne(let s): return scanC1(s)
     case .generic(let r): return scanGeneric(r)
-    case .none: return ScanResult(totalSize: 0, rawCount: 0, jpgCount: 0, folders: [])
+    case .none: return ScanResult(totalSize: 0, rawCount: 0, jpgCount: 0, tiffCount: 0, folders: [])
     }
 }
 
 private func scanC1(_ s: CaptureOneSession) -> ScanResult {
-    var total: Int64 = 0; var raw = 0; var jpg = 0; var folders: [FolderInfo] = []
+    var total: Int64 = 0; var raw = 0; var jpg = 0; var tiff = 0; var folders: [FolderInfo] = []
     for (url, name, isRaw) in [(s.captureFolder,"Capture",true),(s.outputFolder,"Output",false),(s.trashFolder,"Trash",false),(s.selectsFolder,"Selects",false)] as [(URL?,String,Bool)] {
         guard let url else { continue }
         let st = stats(url)
         total += st.size
         if isRaw { raw += st.rawCount }
         jpg += st.jpgCount
-        folders.append(FolderInfo(name: name, path: url, size: st.size, fileCount: st.count, rawCount: st.rawCount, jpgCount: st.jpgCount, subfolderCount: st.subFolders, isRaw: isRaw))
+        tiff += st.tiffCount
+        folders.append(FolderInfo(name: name, path: url, size: st.size, fileCount: st.count, rawCount: st.rawCount, jpgCount: st.jpgCount, tiffCount: st.tiffCount, subfolderCount: st.subFolders, isRaw: isRaw))
     }
     for url in s.otherFolders {
-        let st = stats(url); total += st.size; raw += st.rawCount; jpg += st.jpgCount
-        folders.append(FolderInfo(name: url.lastPathComponent, path: url, size: st.size, fileCount: st.count, rawCount: st.rawCount, jpgCount: st.jpgCount, subfolderCount: st.subFolders, isRaw: false))
+        let st = stats(url); total += st.size; raw += st.rawCount; jpg += st.jpgCount; tiff += st.tiffCount
+        folders.append(FolderInfo(name: url.lastPathComponent, path: url, size: st.size, fileCount: st.count, rawCount: st.rawCount, jpgCount: st.jpgCount, tiffCount: st.tiffCount, subfolderCount: st.subFolders, isRaw: false))
     }
-    return ScanResult(totalSize: total, rawCount: raw, jpgCount: jpg, folders: folders)
+    return ScanResult(totalSize: total, rawCount: raw, jpgCount: jpg, tiffCount: tiff, folders: folders)
 }
 
 private func scanGeneric(_ root: URL) -> ScanResult {
     let fm = FileManager.default
-    guard let contents = try? fm.contentsOfDirectory(at: root, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles) else { return ScanResult(totalSize: 0, rawCount: 0, jpgCount: 0, folders: []) }
-    var total: Int64 = 0; var raw = 0; var jpg = 0; var folders: [FolderInfo] = []
-    let rootSt = stats(root, topLevelOnly: true); total += rootSt.size; raw += rootSt.rawCount; jpg += rootSt.jpgCount
+    guard let contents = try? fm.contentsOfDirectory(at: root, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles) else { return ScanResult(totalSize: 0, rawCount: 0, jpgCount: 0, tiffCount: 0, folders: []) }
+    var total: Int64 = 0; var raw = 0; var jpg = 0; var tiff = 0; var folders: [FolderInfo] = []
+    let rootSt = stats(root, topLevelOnly: true); total += rootSt.size; raw += rootSt.rawCount; jpg += rootSt.jpgCount; tiff += rootSt.tiffCount
     for url in contents {
         var d: ObjCBool = false; fm.fileExists(atPath: url.path, isDirectory: &d); guard d.boolValue else { continue }
-        let st = stats(url); total += st.size; raw += st.rawCount; jpg += st.jpgCount
-        folders.append(FolderInfo(name: url.lastPathComponent, path: url, size: st.size, fileCount: st.count, rawCount: st.rawCount, jpgCount: st.jpgCount, subfolderCount: st.subFolders, isRaw: st.rawCount > 0))
+        let st = stats(url); total += st.size; raw += st.rawCount; jpg += st.jpgCount; tiff += st.tiffCount
+        folders.append(FolderInfo(name: url.lastPathComponent, path: url, size: st.size, fileCount: st.count, rawCount: st.rawCount, jpgCount: st.jpgCount, tiffCount: st.tiffCount, subfolderCount: st.subFolders, isRaw: st.rawCount > 0))
     }
-    if rootSt.count > 0 { folders.insert(FolderInfo(name: "Root Files", path: root, size: rootSt.size, fileCount: rootSt.count, rawCount: rootSt.rawCount, jpgCount: rootSt.jpgCount, subfolderCount: 0, isRaw: rootSt.rawCount > 0), at: 0) }
-    return ScanResult(totalSize: total, rawCount: raw, jpgCount: jpg, folders: folders.sorted { $0.size > $1.size })
+    if rootSt.count > 0 { folders.insert(FolderInfo(name: "Root Files", path: root, size: rootSt.size, fileCount: rootSt.count, rawCount: rootSt.rawCount, jpgCount: rootSt.jpgCount, tiffCount: rootSt.tiffCount, subfolderCount: 0, isRaw: rootSt.rawCount > 0), at: 0) }
+    return ScanResult(totalSize: total, rawCount: raw, jpgCount: jpg, tiffCount: tiff, folders: folders.sorted { $0.size > $1.size })
 }
 
-private struct FolderStats { var size: Int64 = 0; var count = 0; var rawCount = 0; var jpgCount = 0; var subFolders = 0 }
+private struct FolderStats { var size: Int64 = 0; var count = 0; var rawCount = 0; var jpgCount = 0; var tiffCount = 0; var subFolders = 0 }
 
 private func stats(_ url: URL, topLevelOnly: Bool = false) -> FolderStats {
     let fm = FileManager.default
@@ -111,6 +115,7 @@ private func stats(_ url: URL, topLevelOnly: Bool = false) -> FolderStats {
             let ext = f.pathExtension.lowercased()
             if kRaw.contains(ext) { result.rawCount += 1 }
             if kJpg.contains(ext) { result.jpgCount += 1 }
+            if kTiff.contains(ext) { result.tiffCount += 1 }
         }
         return result
     }
@@ -130,6 +135,7 @@ private func stats(_ url: URL, topLevelOnly: Bool = false) -> FolderStats {
             let ext = f.pathExtension.lowercased()
             if kRaw.contains(ext) { result.rawCount += 1 }
             if kJpg.contains(ext) { result.jpgCount += 1 }
+            if kTiff.contains(ext) { result.tiffCount += 1 }
         }
     }
     return result
@@ -149,6 +155,7 @@ class FolderMonitor: ObservableObject {
     @Published var totalSize: Int64 = 0
     @Published var totalRawCount: Int = 0
     @Published var totalJpgCount: Int = 0
+    @Published var totalTiffCount: Int = 0
     @Published var subfolders: [FolderInfo] = []
     @Published var isLoading: Bool = false
     @Published var updateState: UpdateState = .idle
@@ -169,6 +176,7 @@ class FolderMonitor: ObservableObject {
                     if isStale { Self.saveBookmark(for: url) }
                 }
             } catch {
+                print("Failed to resolve bookmark: \(error)")
             }
         } else if let saved = UserDefaults.standard.string(forKey: "watchedFolderPath") {
             // Legacy fallback
@@ -191,6 +199,7 @@ class FolderMonitor: ObservableObject {
             UserDefaults.standard.set(data, forKey: "watchedFolderBookmark")
             UserDefaults.standard.set(url.path, forKey: "watchedFolderPath")
         } catch {
+            print("Failed to save bookmark: \(error)")
         }
     }
 
@@ -210,7 +219,10 @@ class FolderMonitor: ObservableObject {
             panel.begin { [weak self] response in
                 NSApp.setActivationPolicy(.accessory)
                 NSApp.activate(ignoringOtherApps: true)
-                guard let self, response == .OK, let url = panel.url else { return }
+                guard let self, response == .OK, let url = panel.url else {
+                    NSApp.setActivationPolicy(.accessory)
+                    return
+                }
                 _ = url.startAccessingSecurityScopedResource()
                 Self.saveBookmark(for: url)
                 self.setRoot(url)
@@ -225,7 +237,7 @@ class FolderMonitor: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "watchedFolderPath")
         rootPath = nil
         sessionMode = .none
-        totalSize = 0; totalRawCount = 0; totalJpgCount = 0
+        totalSize = 0; totalRawCount = 0; totalJpgCount = 0; totalTiffCount = 0
         subfolders = []
     }
 
@@ -255,7 +267,10 @@ class FolderMonitor: ObservableObject {
                     try? await Task.sleep(nanoseconds: 3_000_000_000)
                     if case .upToDate = updateState { updateState = .idle }
                 }
-            } catch { updateState = .error }
+            } catch {
+                updateState = .error
+                print("Update check failed: \(error)")
+            }
         }
     }
 
@@ -280,6 +295,7 @@ class FolderMonitor: ObservableObject {
                 self.totalSize = result.totalSize
                 self.totalRawCount = result.rawCount
                 self.totalJpgCount = result.jpgCount
+                self.totalTiffCount = result.tiffCount
                 self.subfolders = result.folders
                 self.isLoading = false
             }

@@ -10,13 +10,16 @@ struct MenuBarLabel: View {
             if monitor.isLoading {
                 Text("…")
                     .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .accessibilityLabel("Calculating folder size")
             } else if monitor.rootPath != nil {
                 Text(sizeLabel)
                     .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .accessibilityLabel("Total folder size: \(sizeLabel)")
             } else {
                 Text("No folder")
                     .font(.system(size: 12, weight: .regular))
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel("No folder selected")
             }
         }
     }

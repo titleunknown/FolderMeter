@@ -13,13 +13,17 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
                             .truncationMode(.middle)
+                            .accessibilityLabel("Selected folder path: \(path.path)")
                     }
                     Button("Change Folder…") { monitor.selectFolder() }
+                        .accessibilityLabel("Change monitored folder")
                     Button("Clear", role: .destructive) { monitor.clearFolder() }
+                        .accessibilityLabel("Clear monitored folder")
                 } else {
                     Text("No folder selected")
                         .foregroundStyle(.secondary)
                     Button("Select Folder…") { monitor.selectFolder() }
+                        .accessibilityLabel("Select folder to monitor")
                 }
             }
 

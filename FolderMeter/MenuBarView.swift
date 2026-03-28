@@ -60,6 +60,7 @@ struct MenuBarView: View {
                     }
                     .buttonStyle(.plain)
                     .help("Reveal in Finder")
+                    .accessibilityLabel("Open folder: \(root.lastPathComponent)")
                 }
             }
 
@@ -86,6 +87,14 @@ struct MenuBarView: View {
                         }
                         if monitor.totalJpgCount > 0 {
                             OdometerLabel(value: "\(monitor.totalJpgCount)", label: "JPG", color: .blue, size: 15)
+                        }
+                        if monitor.totalRawCount > 0 && monitor.totalTiffCount > 0 {
+                            Rectangle()
+                                .fill(.secondary.opacity(0.3))
+                                .frame(width: 1, height: 24)
+                        }
+                        if monitor.totalTiffCount > 0 {
+                            OdometerLabel(value: "\(monitor.totalTiffCount)", label: "TIFF", color: .purple, size: 15)
                         }
                     }
                 }
@@ -168,6 +177,7 @@ struct MenuBarView: View {
             .onHover { inside in
                 if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
             }
+            .accessibilityLabel("Visit Faini Made website")
 
             Spacer()
 
@@ -178,6 +188,7 @@ struct MenuBarView: View {
                     .buttonStyle(.plain)
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
+                    .accessibilityLabel("Check for updates")
 
             case .checking:
                 HStack(spacing: 4) {
@@ -205,6 +216,7 @@ struct MenuBarView: View {
                 .onHover { inside in
                     if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
                 }
+                .accessibilityLabel("Download version \(version)")
 
             case .error:
                 Text("Check failed")
@@ -226,6 +238,7 @@ struct MenuBarView: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
+            .accessibilityLabel(monitor.rootPath == nil ? "Select folder to monitor" : "Change monitored folder")
 
             Spacer()
 
@@ -236,6 +249,7 @@ struct MenuBarView: View {
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
                 .help("Refresh")
+                .accessibilityLabel("Refresh folder size calculation")
 
                 Button { monitor.clearFolder() } label: {
                     Image(systemName: "xmark.circle").font(.system(size: 12))
@@ -243,12 +257,14 @@ struct MenuBarView: View {
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
                 .help("Remove")
+                .accessibilityLabel("Remove monitored folder")
             }
 
             Button("Quit") { NSApplication.shared.terminate(nil) }
                 .buttonStyle(.plain)
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
+                .accessibilityLabel("Quit FolderMeter")
         }
     }
 }
@@ -306,12 +322,14 @@ struct FolderRow: View {
                         .font(.system(size: 11))
                         .foregroundStyle(barColor)
                         .frame(width: 16)
+                        .accessibilityLabel("Folder type: \(folder.name)")
 
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 5) {
                             Text(folder.name)
                                 .font(.system(size: 12, weight: .medium))
                                 .lineLimit(1)
+                                .accessibilityLabel("Folder name: \(folder.name)")
                             if folder.name == "Capture" && folder.rawCount > 0 {
                                 Text("\(folder.rawCount) RAW")
                                     .font(.system(size: 10, weight: .semibold))
@@ -319,6 +337,7 @@ struct FolderRow: View {
                                     .padding(.horizontal, 5)
                                     .padding(.vertical, 1)
                                     .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                                    .accessibilityLabel("\(folder.rawCount) RAW files")
                             }
                         }
 
@@ -327,14 +346,16 @@ struct FolderRow: View {
                                 Text("\(folder.subfolderCount) \(folder.subfolderCount == 1 ? "folder" : "folders")")
                                     .font(.system(size: 10))
                                     .foregroundStyle(.secondary)
+                                    .accessibilityLabel("\(folder.subfolderCount) subfolders")
                             }
-                            if folder.subfolderCount > 0 && (folder.rawCount > 0 || folder.jpgCount > 0) {
+                            if folder.subfolderCount > 0 && (folder.rawCount > 0 || folder.jpgCount > 0 || folder.tiffCount > 0) {
                                 Text("·").font(.system(size: 10)).foregroundStyle(.secondary)
                             }
                             if folder.rawCount > 0 {
                                 Text("\(folder.rawCount) RAW")
                                     .font(.system(size: 10))
                                     .foregroundStyle(.secondary)
+                                    .accessibilityLabel("\(folder.rawCount) RAW files")
                             }
                             if folder.rawCount > 0 && folder.jpgCount > 0 {
                                 Text("·").font(.system(size: 10)).foregroundStyle(.secondary)
@@ -343,11 +364,19 @@ struct FolderRow: View {
                                 Text("\(folder.jpgCount) JPG")
                                     .font(.system(size: 10))
                                     .foregroundStyle(.secondary)
+                                    .accessibilityLabel("\(folder.jpgCount) JPG files")
                             }
-                            if folder.subfolderCount == 0 && folder.rawCount == 0 && folder.jpgCount == 0 {
+                            if folder.tiffCount > 0 {
+                                Text("\(folder.tiffCount) TIFF")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.secondary)
+                                    .accessibilityLabel("\(folder.tiffCount) TIFF files")
+                            }
+                            if folder.subfolderCount == 0 && folder.rawCount == 0 && folder.jpgCount == 0 && folder.tiffCount == 0 {
                                 Text("\(folder.fileCount) files")
                                     .font(.system(size: 10))
                                     .foregroundStyle(.secondary)
+                                    .accessibilityLabel("\(folder.fileCount) files")
                             }
                         }
                     }
@@ -357,6 +386,7 @@ struct FolderRow: View {
                     Text(folder.formattedSize)
                         .font(.system(size: 11, weight: .medium, design: .monospaced))
                         .foregroundStyle(.primary)
+                        .accessibilityLabel("Folder size: \(folder.formattedSize)")
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 7)
@@ -373,6 +403,7 @@ struct FolderRow: View {
         }
         .buttonStyle(.plain)
         .help("Reveal in Finder")
+        .accessibilityLabel("Open folder: \(folder.name)")
     }
 
     private var folderIcon: String {

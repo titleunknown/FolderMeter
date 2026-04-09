@@ -166,7 +166,6 @@ class FolderMonitor: ObservableObject {
     private var debounceItem: DispatchWorkItem?
 
     init() {
-        // Try security-scoped bookmark first (proper sandbox persistence)
         if let bookmarkData = UserDefaults.standard.data(forKey: "watchedFolderBookmark") {
             do {
                 var isStale = false
@@ -179,11 +178,8 @@ class FolderMonitor: ObservableObject {
                 print("Failed to resolve bookmark: \(error)")
             }
         } else if let saved = UserDefaults.standard.string(forKey: "watchedFolderPath") {
-            // Legacy fallback
             let url = URL(fileURLWithPath: saved)
-            if FileManager.default.fileExists(atPath: url.path) {
-                rootPath = url
-            }
+            if FileManager.default.fileExists(atPath: url.path) { rootPath = url }
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
@@ -298,7 +294,37 @@ class FolderMonitor: ObservableObject {
                 self.totalTiffCount = result.tiffCount
                 self.subfolders = result.folders
                 self.isLoading = false
+                self.writeWidgetData()
             }
+        }
+    }
+
+    private func writeWidgetData() {
+        guard let root = rootPath else { return }
+        let widgetFolders = subfolders.map { f in
+            WidgetFolderInfo(
+                name: f.name,
+                size: f.size,
+                rawCount: f.rawCount,
+                jpgCount: f.jpgCount,
+                tiffCount: f.tiffCount,
+                fileCount: f.fileCount
+            )
+        }
+        let isC1: Bool
+        if case .captureOne = sessionMode { isC1 = true } else { isC1 = false }
+        let data = FolderWidgetData(
+            folderName: root.lastPathComponent,
+            totalSize: totalSize,
+            rawCount: totalRawCount,
+            jpgCount: totalJpgCount,
+            tiffCount: totalTiffCount,
+            isCaptureOneSession: isC1,
+            folders: widgetFolders,
+            updatedAt: Date()
+        )
+        if let encoded = try? JSONEncoder().encode(data) {
+            UserDefaults(suiteName: "group.com.fainimade.foldermeter")?.set(encoded, forKey: "widgetData")
         }
     }
 

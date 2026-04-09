@@ -27,8 +27,8 @@ struct MenuBarLabel: View {
     private var iconName: String {
         switch monitor.sessionMode {
         case .captureOne: return "camera.aperture"
-        case .generic: return "folder"
-        case .none: return "folder.badge.questionmark"
+        case .generic:    return "folder"
+        case .none:       return "folder.badge.questionmark"
         }
     }
 

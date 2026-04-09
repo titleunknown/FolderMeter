@@ -15,11 +15,6 @@ struct FolderMeterApp: App {
                 .environmentObject(folderMonitor)
         }
         .menuBarExtraStyle(.window)
-
-        Settings {
-            SettingsView()
-                .environmentObject(folderMonitor)
-        }
     }
 }
 

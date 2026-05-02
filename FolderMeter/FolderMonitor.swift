@@ -294,37 +294,7 @@ class FolderMonitor: ObservableObject {
                 self.totalTiffCount = result.tiffCount
                 self.subfolders = result.folders
                 self.isLoading = false
-                self.writeWidgetData()
             }
-        }
-    }
-
-    private func writeWidgetData() {
-        guard let root = rootPath else { return }
-        let widgetFolders = subfolders.map { f in
-            WidgetFolderInfo(
-                name: f.name,
-                size: f.size,
-                rawCount: f.rawCount,
-                jpgCount: f.jpgCount,
-                tiffCount: f.tiffCount,
-                fileCount: f.fileCount
-            )
-        }
-        let isC1: Bool
-        if case .captureOne = sessionMode { isC1 = true } else { isC1 = false }
-        let data = FolderWidgetData(
-            folderName: root.lastPathComponent,
-            totalSize: totalSize,
-            rawCount: totalRawCount,
-            jpgCount: totalJpgCount,
-            tiffCount: totalTiffCount,
-            isCaptureOneSession: isC1,
-            folders: widgetFolders,
-            updatedAt: Date()
-        )
-        if let encoded = try? JSONEncoder().encode(data) {
-            UserDefaults(suiteName: "group.com.fainimade.foldermeter")?.set(encoded, forKey: "widgetData")
         }
     }
 

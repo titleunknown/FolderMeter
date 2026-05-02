@@ -31,7 +31,6 @@
 - **RAW, JPG & TIFF counts** — tracks image file types separately across the whole session
 - **Per-subfolder breakdown** — size bars, folder counts, file type stats per folder
 - **CaptureOne folder excluded** — proxy caches and catalog files don't skew your numbers
-- **Desktop widget** — small and medium widgets show live session data at a glance
 - **Persistent** — remembers your folder across launches
 - Menu bar only — no dock icon, no ⌘-Tab clutter
 
@@ -65,24 +64,6 @@ Requires macOS 14.0+ and Xcode 15+.
 2. Open `FolderMeter.xcodeproj` in Xcode
 3. Set your development team in **Signing & Capabilities**
 4. Build & Run (`⌘R`)
-
----
-
-## Widget
-
-FolderMeter includes a desktop widget in two sizes — small and medium — that updates automatically as your session changes.
-
-**Small widget** shows total session size and RAW/JPG/TIFF counts at a glance.
-
-**Medium widget** adds a per-folder breakdown with size bars, mirroring the menu bar view.
-
-### Adding the widget
-
-1. Right-click your desktop and choose **Edit Widgets**
-2. Search for **FolderMeter**
-3. Drag either the small or medium widget to your desktop
-
-The widget reflects whatever folder you have selected in the menu bar app. Open FolderMeter and select a folder first if you haven't already.
 
 ---
 

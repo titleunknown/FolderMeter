@@ -17,7 +17,6 @@
 
 <p align="center">
   <img src="Screenshot_FolderMeter.jpg" alt="FolderMeter screenshot" width="340" />
-  <img src="FolderMeter-Widgets.jpg" alt="FolderMeter screenshot" width="340" />
 
 </p>
 

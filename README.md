@@ -17,7 +17,10 @@
 
 <p align="center">
   <img src="Screenshot_FolderMeter.jpg" alt="FolderMeter screenshot" width="340" />
+  <img src="FolderMeter-Widgets.jpg" alt="FolderMeter screenshot" width="340" />
+
 </p>
+
 
 ---
 
@@ -26,9 +29,10 @@
 - **Live updates** — file system watcher fires the moment files change, no polling
 - **Capture One session detection** — auto-detects Capture / Output / Trash / Selects structure
 - **Generic folder mode** — works as a watcher for any folder
-- **RAW & JPG counts** — tracks image file types separately across the whole session
+- **RAW, JPG & TIFF counts** — tracks image file types separately across the whole session
 - **Per-subfolder breakdown** — size bars, folder counts, file type stats per folder
 - **CaptureOne folder excluded** — proxy caches and catalog files don't skew your numbers
+- **Desktop widget** — small and medium widgets show live session data at a glance
 - **Persistent** — remembers your folder across launches
 - Menu bar only — no dock icon, no ⌘-Tab clutter
 
@@ -65,9 +69,27 @@ Requires macOS 14.0+ and Xcode 15+.
 
 ---
 
+## Widget
+
+FolderMeter includes a desktop widget in two sizes — small and medium — that updates automatically as your session changes.
+
+**Small widget** shows total session size and RAW/JPG/TIFF counts at a glance.
+
+**Medium widget** adds a per-folder breakdown with size bars, mirroring the menu bar view.
+
+### Adding the widget
+
+1. Right-click your desktop and choose **Edit Widgets**
+2. Search for **FolderMeter**
+3. Drag either the small or medium widget to your desktop
+
+The widget reflects whatever folder you have selected in the menu bar app. Open FolderMeter and select a folder first if you haven't already.
+
+---
+
 ## Capture One Detection
 
-Detects a Capture One session when the watched folder contains a `Capture` subfolder, or both `Output` + `Trash`. Once detected, named rows are shown with context-aware icons:
+Detects a Capture One session when the watched folder contains all four subfolders: `Capture`, `Output`, `Trash`, and `Selects`. Once detected, named rows are shown with context-aware icons:
 
 | Folder | Color | Notes |
 |---|---|---|
@@ -81,6 +103,7 @@ The `CaptureOne` system folder (proxies, cache, catalog) is excluded from all fi
 ## RAW Formats Supported
 
 `CR2 CR3 NEF ARW ORF RW2 DNG RAF 3FR FFF IIQ MRW NRW PEF RWL SR2 SRF X3F ERF RAW`
+
 ## License
 
 FolderMeter is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Free for personal and non-commercial use. For commercial licensing contact [fainimade.com](https://www.fainimade.com).

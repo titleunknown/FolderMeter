@@ -158,70 +158,83 @@ struct MenuBarView: View {
     // MARK: - About
 
     private var aboutSection: some View {
-        HStack(spacing: 0) {
-            Text("FolderMeter")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
-            Text(" · by ")
-                .font(.system(size: 10))
-                .foregroundStyle(.tertiary)
-            Button {
-                NSWorkspace.shared.open(URL(string: "https://www.fainimade.com")!)
-            } label: {
-                Text("FAINI MADE")
+        VStack(alignment: .leading, spacing: 4) {
+            // Row 1: brand
+            HStack(spacing: 0) {
+                Text("FolderMeter")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.tertiary)
-                    .underline()
-            }
-            .buttonStyle(.plain)
-            .onHover { inside in
-                if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
-            }
-            .accessibilityLabel("Visit Faini Made website")
-
-            Spacer()
-
-            // Update button
-            switch monitor.updateState {
-            case .idle:
-                Button("Check for updates") { monitor.checkForUpdates() }
-                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                Text(" · by ")
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
-                    .accessibilityLabel("Check for updates")
-
-            case .checking:
-                HStack(spacing: 4) {
-                    ProgressView().scaleEffect(0.5).frame(width: 12, height: 12)
-                    Text("Checking…")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.tertiary)
-                }
-
-            case .upToDate:
-                Text("Up to date")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.green)
-
-            case .available(let version, let url):
                 Button {
-                    NSWorkspace.shared.open(url)
+                    NSWorkspace.shared.open(URL(string: "https://www.fainimade.com")!)
                 } label: {
-                    Text("\(version) available")
+                    Text("FAINI MADE")
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(.tertiary)
                         .underline()
                 }
                 .buttonStyle(.plain)
                 .onHover { inside in
                     if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
                 }
-                .accessibilityLabel("Download version \(version)")
+                .accessibilityLabel("Visit Faini Made website")
+            }
 
-            case .error:
-                Text("Check failed")
+            // Row 2: version + update state
+            HStack(spacing: 5) {
+                Text("v\(monitor.currentVersion)")
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(.quaternary)
+
+                Text("·")
                     .font(.system(size: 10))
-                    .foregroundStyle(.red)
+                    .foregroundStyle(.quaternary)
+
+                switch monitor.updateState {
+                case .idle:
+                    Button("Check for updates") { monitor.checkForUpdates() }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                        .accessibilityLabel("Check for updates")
+
+                case .checking:
+                    HStack(spacing: 4) {
+                        ProgressView().scaleEffect(0.5).frame(width: 12, height: 12)
+                        Text("Checking…")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                    }
+
+                case .upToDate:
+                    Text("Up to date ✓")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.green)
+
+                case .available(let version, let url):
+                    Button {
+                        NSWorkspace.shared.open(url)
+                    } label: {
+                        Text("\(version) available →")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.orange)
+                            .underline()
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { inside in
+                        if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+                    }
+                    .accessibilityLabel("Download version \(version)")
+
+                case .error:
+                    Text("Check failed")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.red)
+                }
+
+                Spacer()
             }
         }
     }

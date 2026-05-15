@@ -244,19 +244,22 @@ class FolderMonitor: ObservableObject {
 
     func checkForUpdates() {
         updateState = .checking
-        Task {
+        Task { @MainActor in
             do {
-                let url = URL(string: "https://api.github.com/repos/titleunknown/FolderMeter/releases/latest")!
-                var req = URLRequest(url: url)
+                let apiURL = URL(string: "https://api.github.com/repos/titleunknown/FolderMeter/releases/latest")!
+                var req = URLRequest(url: apiURL, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 15)
                 req.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-                let (data, _) = try await URLSession.shared.data(for: req)
+                req.setValue("FolderMeter/\(currentVersion)", forHTTPHeaderField: "User-Agent")
+                let (data, response) = try await URLSession.shared.data(for: req)
+                guard let httpResponse = response as? HTTPURLResponse,
+                      httpResponse.statusCode == 200 else { updateState = .error; return }
                 guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                       let tag = json["tag_name"] as? String,
+                      !tag.isEmpty,
                       let htmlUrl = json["html_url"] as? String,
                       let releaseUrl = URL(string: htmlUrl) else { updateState = .error; return }
-                let remote = tag.trimmingCharacters(in: .init(charactersIn: "v"))
-                let current = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
-                if remote.compare(current, options: .numeric) == .orderedDescending {
+                let remote = tag.trimmingCharacters(in: CharacterSet(charactersIn: "vV"))
+                if remote.compare(currentVersion, options: .numeric) == .orderedDescending {
                     updateState = .available(version: tag, url: releaseUrl)
                 } else {
                     updateState = .upToDate
@@ -268,6 +271,11 @@ class FolderMonitor: ObservableObject {
                 print("Update check failed: \(error)")
             }
         }
+    }
+
+    /// Current app version read from the bundle — always in sync with CFBundleShortVersionString.
+    var currentVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
     }
 
     // MARK: - Private

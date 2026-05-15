@@ -6,7 +6,7 @@
 
 <p align="center">
   A lightweight macOS menu bar app that monitors folder sizes in real time.<br/>
-  Built for photographers using Capture One — works with any folder.
+  Built for photographers using Capture One, works with any folder.
 </p>
 
 <p align="center">

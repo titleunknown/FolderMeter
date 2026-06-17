@@ -5,12 +5,20 @@ struct MenuBarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // Section 1: mode label + folder name (full width, its own area)
             headerView
                 .padding(.horizontal, 16)
                 .padding(.top, 14)
-                .padding(.bottom, 10)
+                .padding(.bottom, monitor.rootPath != nil ? 10 : 14)
 
+            // Section 2: dedicated stats area (TOTAL + file-type counts)
             if monitor.rootPath != nil {
+                if !monitor.isLoading {
+                    statsSection
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 12)
+                }
+
                 Divider().padding(.horizontal, 12)
 
                 if monitor.isLoading {
@@ -44,66 +52,72 @@ struct MenuBarView: View {
     // MARK: - Header
 
     private var headerView: some View {
-        HStack(alignment: .top, spacing: 0) {
-            // Left: mode label + session name
-            VStack(alignment: .leading, spacing: 4) {
-                modeLabel
-                if let root = monitor.rootPath {
-                    Button {
-                        NSWorkspace.shared.activateFileViewerSelecting([root])
-                    } label: {
-                        Text(root.lastPathComponent)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.primary)
-                            .lineLimit(2)
-                            .truncationMode(.middle)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Reveal in Finder")
-                    .accessibilityLabel("Open folder: \(root.lastPathComponent)")
+        // Mode label + session/folder name — its own full-width section so the
+        // name has room to breathe and never competes with the counts.
+        VStack(alignment: .leading, spacing: 4) {
+            modeLabel
+            if let root = monitor.rootPath {
+                Button {
+                    NSWorkspace.shared.activateFileViewerSelecting([root])
+                } label: {
+                    Text(root.lastPathComponent)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .truncationMode(.middle)
+                        .multilineTextAlignment(.leading)
                 }
-            }
-
-            Spacer()
-
-            // Right: stacked odometer stats
-            if monitor.rootPath != nil && !monitor.isLoading {
-                VStack(alignment: .trailing, spacing: 6) {
-                    OdometerLabel(
-                        value: ByteCountFormatter.string(fromByteCount: monitor.totalSize, countStyle: .file),
-                        label: "TOTAL",
-                        color: .primary,
-                        size: 18
-                    )
-
-                    HStack(spacing: 10) {
-                        if monitor.totalRawCount > 0 {
-                            OdometerLabel(value: "\(monitor.totalRawCount)", label: "RAW", color: .orange, size: 15)
-                        }
-                        if monitor.totalRawCount > 0 && monitor.totalJpgCount > 0 {
-                            Rectangle()
-                                .fill(.secondary.opacity(0.3))
-                                .frame(width: 1, height: 24)
-                        }
-                        if monitor.totalJpgCount > 0 {
-                            OdometerLabel(value: "\(monitor.totalJpgCount)", label: "JPG", color: .blue, size: 15)
-                        }
-                        if monitor.totalRawCount > 0 && monitor.totalTiffCount > 0 {
-                            Rectangle()
-                                .fill(.secondary.opacity(0.3))
-                                .frame(width: 1, height: 24)
-                        }
-                        if monitor.totalTiffCount > 0 {
-                            OdometerLabel(value: "\(monitor.totalTiffCount)", label: "TIFF", color: .purple, size: 15)
-                        }
-                    }
-                }
-            } else if monitor.isLoading {
-                ProgressView()
-                    .scaleEffect(0.6)
-                    .frame(width: 20, height: 20)
+                .buttonStyle(.plain)
+                .help("\(root.lastPathComponent)\n\(root.path(percentEncoded: false))\n\nReveal in Finder")
+                .accessibilityLabel("Open folder: \(root.lastPathComponent)")
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - Stats Section
+
+    private var statsSection: some View {
+        // Dedicated counts area: TOTAL on the left, file-type counts on the
+        // right. Counts keep their natural width (no truncation) and, because
+        // they no longer share a row with the folder name, there's plenty of
+        // horizontal room.
+        // TOTAL on its own row above the file-type counts, both right-justified.
+        // Stacking them gives the counts the full width, so higher counts and a
+        // third (TIFF) column have room without crowding.
+        VStack(alignment: .trailing, spacing: 6) {
+            OdometerLabel(
+                value: ByteCountFormatter.string(fromByteCount: monitor.totalSize, countStyle: .file),
+                label: "TOTAL",
+                color: .primary,
+                size: 20
+            )
+
+            HStack(spacing: 10) {
+                if monitor.totalRawCount > 0 {
+                    OdometerLabel(value: "\(monitor.totalRawCount)", label: "RAW", color: .orange, size: 15)
+                }
+                if monitor.totalRawCount > 0 && monitor.totalJpgCount > 0 {
+                    statDivider
+                }
+                if monitor.totalJpgCount > 0 {
+                    OdometerLabel(value: "\(monitor.totalJpgCount)", label: "JPG", color: .blue, size: 15)
+                }
+                if (monitor.totalRawCount > 0 || monitor.totalJpgCount > 0) && monitor.totalTiffCount > 0 {
+                    statDivider
+                }
+                if monitor.totalTiffCount > 0 {
+                    OdometerLabel(value: "\(monitor.totalTiffCount)", label: "TIFF", color: .purple, size: 15)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+
+    private var statDivider: some View {
+        Rectangle()
+            .fill(.secondary.opacity(0.3))
+            .frame(width: 1, height: 24)
     }
 
     private var modeLabel: some View {
@@ -158,71 +172,95 @@ struct MenuBarView: View {
     // MARK: - About
 
     private var aboutSection: some View {
-        HStack(spacing: 0) {
-            Text("FolderMeter")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
-            Text(" · by ")
-                .font(.system(size: 10))
-                .foregroundStyle(.tertiary)
-            Button {
-                NSWorkspace.shared.open(URL(string: "https://www.fainimade.com")!)
-            } label: {
-                Text("FAINI MADE")
+        HStack(alignment: .center, spacing: 8) {
+        VStack(alignment: .leading, spacing: 4) {
+            // Row 1: brand
+            HStack(spacing: 0) {
+                Text("FolderMeter")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.tertiary)
-                    .underline()
-            }
-            .buttonStyle(.plain)
-            .onHover { inside in
-                if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
-            }
-            .accessibilityLabel("Visit Faini Made website")
-
-            Spacer()
-
-            // Update button
-            switch monitor.updateState {
-            case .idle:
-                Button("Check for updates") { monitor.checkForUpdates() }
-                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                Text(" · by ")
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
-                    .accessibilityLabel("Check for updates")
-
-            case .checking:
-                HStack(spacing: 4) {
-                    ProgressView().scaleEffect(0.5).frame(width: 12, height: 12)
-                    Text("Checking…")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.tertiary)
-                }
-
-            case .upToDate:
-                Text("Up to date")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.green)
-
-            case .available(let version, let url):
                 Button {
-                    NSWorkspace.shared.open(url)
+                    NSWorkspace.shared.open(URL(string: "https://www.fainimade.com")!)
                 } label: {
-                    Text("\(version) available")
+                    Text("FAINI MADE")
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(.tertiary)
                         .underline()
                 }
                 .buttonStyle(.plain)
                 .onHover { inside in
                     if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
                 }
-                .accessibilityLabel("Download version \(version)")
-
-            case .error:
-                Text("Check failed")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.red)
+                .accessibilityLabel("Visit Faini Made website")
             }
+
+            // Row 2: version + update state
+            HStack(spacing: 5) {
+                Text("v\(monitor.currentVersion)")
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(.quaternary)
+
+                Text("·")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.quaternary)
+
+                switch monitor.updateState {
+                case .idle:
+                    Button("Check for updates") { monitor.checkForUpdates() }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                        .accessibilityLabel("Check for updates")
+
+                case .checking:
+                    HStack(spacing: 4) {
+                        ProgressView().scaleEffect(0.5).frame(width: 12, height: 12)
+                        Text("Checking…")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                    }
+
+                case .upToDate:
+                    Text("Up to date ✓")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.green)
+
+                case .available(let version, let url):
+                    Button {
+                        NSWorkspace.shared.open(url)
+                    } label: {
+                        Text("\(version) available →")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(.orange)
+                            .underline()
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { inside in
+                        if inside { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+                    }
+                    .accessibilityLabel("Download version \(version)")
+
+                case .error:
+                    Text("Check failed")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.red)
+                }
+
+                Spacer()
+            }
+        }
+
+            Spacer(minLength: 8)
+
+            // Quit lives here now, in the bottom-right of the about area.
+            Button("Quit") { NSApplication.shared.terminate(nil) }
+                .buttonStyle(.plain)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .accessibilityLabel("Quit FolderMeter")
         }
     }
 
@@ -259,12 +297,6 @@ struct MenuBarView: View {
                 .help("Remove")
                 .accessibilityLabel("Remove monitored folder")
             }
-
-            Button("Quit") { NSApplication.shared.terminate(nil) }
-                .buttonStyle(.plain)
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-                .accessibilityLabel("Quit FolderMeter")
         }
     }
 }
@@ -276,9 +308,10 @@ struct OdometerLabel: View {
     let label: String
     let color: Color
     let size: CGFloat
+    var alignment: HorizontalAlignment = .trailing
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 1) {
+        VStack(alignment: alignment, spacing: 1) {
             Text(label)
                 .font(.system(size: 8, weight: .medium, design: .monospaced))
                 .foregroundStyle(.secondary)
@@ -287,7 +320,11 @@ struct OdometerLabel: View {
                 .font(.system(size: size, weight: .bold, design: .monospaced))
                 .foregroundStyle(color)
                 .monospacedDigit()
+                .lineLimit(1)
         }
+        // Never truncate the counts — keep them at their natural width so the
+        // stats area scales to fit the numbers instead of clipping them to "84…".
+        .fixedSize(horizontal: true, vertical: false)
     }
 }
 

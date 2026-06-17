@@ -7,13 +7,17 @@ struct MenuBarLabel: View {
         HStack(spacing: 4) {
             Image(systemName: iconName)
                 .imageScale(.small)
-            if monitor.isLoading {
-                Text("…")
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
-                    .accessibilityLabel("Calculating folder size")
-            } else if monitor.rootPath != nil {
+
+            if monitor.rootPath != nil {
                 Text(sizeLabel)
                     .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    // Reserve space so the menu bar item doesn't reflow as the
+                    // size string grows/shrinks; grows past this only for very
+                    // large values, which is rare.
+                    .frame(minWidth: 56, alignment: .leading)
+                    .animation(.default, value: monitor.totalSize)
                     .accessibilityLabel("Total folder size: \(sizeLabel)")
             } else {
                 Text("No folder")
@@ -32,7 +36,12 @@ struct MenuBarLabel: View {
         }
     }
 
+    // Keep the last known size on screen while a refresh runs in the background —
+    // only show a placeholder for the very first scan, when there's no value yet.
     private var sizeLabel: String {
-        ByteCountFormatter.string(fromByteCount: monitor.totalSize, countStyle: .file)
+        if monitor.isLoading && monitor.totalSize == 0 {
+            return "…"
+        }
+        return ByteCountFormatter.string(fromByteCount: monitor.totalSize, countStyle: .file)
     }
 }

@@ -14,7 +14,23 @@
 		236237382F66744F00B702E5 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 236237372F66744F00B702E5 /* Info.plist */; };
 		2362373D2F66746000B702E5 /* MenuBarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 236237392F66746000B702E5 /* MenuBarLabel.swift */; };
 		2362373F2F66746000B702E5 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2362373B2F66746000B702E5 /* MenuBarView.swift */; };
+		23FEDC842F9C34940047EAAB /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23FEDC832F9C34940047EAAB /* WidgetKit.framework */; };
+		23FEDC862F9C34940047EAAB /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23FEDC852F9C34940047EAAB /* SwiftUI.framework */; };
+		23FEDC922F9C34950047EAAB /* FolderMeterWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 23FEDC812F9C34940047EAAB /* FolderMeterWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		23FEDC972F9C34990047EAAB /* FolderMeterWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FEDC772F9C32610047EAAB /* FolderMeterWidget.swift */; };
+		23FEDC982F9C34AA0047EAAB /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FEDC7B2F9C33830047EAAB /* WidgetSnapshot.swift */; };
+		23FEDC992F9C35F20047EAAB /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FEDC7B2F9C33830047EAAB /* WidgetSnapshot.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		23FEDC902F9C34950047EAAB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2362370B2F66730100B702E5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 23FEDC802F9C34940047EAAB;
+			remoteInfo = FolderMeterWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		23FEDC962F9C34950047EAAB /* Embed Foundation Extensions */ = {
@@ -23,6 +39,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				23FEDC922F9C34950047EAAB /* FolderMeterWidgetExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -42,7 +59,14 @@
 		2362373C2F66746000B702E5 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		23F335FA2F674B67006C3B17 /* folder meter icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "folder meter icon.png"; path = "../../folder meter icon.png"; sourceTree = "<group>"; };
 		23F335FE2F6750DF006C3B17 /* Screenshot_FolderMeter.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Screenshot_FolderMeter.jpg; sourceTree = "<group>"; };
+		23FEDC772F9C32610047EAAB /* FolderMeterWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderMeterWidget.swift; sourceTree = "<group>"; };
+		23FEDC7B2F9C33830047EAAB /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
+		23FEDC812F9C34940047EAAB /* FolderMeterWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FolderMeterWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		23FEDC832F9C34940047EAAB /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		23FEDC852F9C34940047EAAB /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		23FEDC8E2F9C34950047EAAB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		23FEDC8F2F9C34950047EAAB /* FolderMeterWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FolderMeterWidget.entitlements; sourceTree = "<group>"; };
+		23FEDC9C2F9C36000047EAAB /* sync-version.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "sync-version.sh"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +77,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		23FEDC7E2F9C34940047EAAB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				23FEDC862F9C34940047EAAB /* SwiftUI.framework in Frameworks */,
+				23FEDC842F9C34940047EAAB /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -60,6 +93,8 @@
 			isa = PBXGroup;
 			children = (
 				236237152F66730100B702E5 /* FolderMeter */,
+				23FEDC9A2F9C36000047EAAB /* Shared */,
+				23FEDC872F9C34940047EAAB /* FolderMeterWidget */,
 				23FEDC822F9C34940047EAAB /* Frameworks */,
 				236237142F66730100B702E5 /* Products */,
 			);
@@ -69,6 +104,7 @@
 			isa = PBXGroup;
 			children = (
 				236237132F66730100B702E5 /* FolderMeter.app */,
+				23FEDC812F9C34940047EAAB /* FolderMeterWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,9 +138,29 @@
 		23FEDC822F9C34940047EAAB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				23FEDC832F9C34940047EAAB /* WidgetKit.framework */,
 				23FEDC852F9C34940047EAAB /* SwiftUI.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		23FEDC872F9C34940047EAAB /* FolderMeterWidget */ = {
+			isa = PBXGroup;
+			children = (
+				23FEDC772F9C32610047EAAB /* FolderMeterWidget.swift */,
+				23FEDC8E2F9C34950047EAAB /* Info.plist */,
+				23FEDC8F2F9C34950047EAAB /* FolderMeterWidget.entitlements */,
+				23FEDC9C2F9C36000047EAAB /* sync-version.sh */,
+			);
+			path = FolderMeterWidget;
+			sourceTree = "<group>";
+		};
+		23FEDC9A2F9C36000047EAAB /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				23FEDC7B2F9C33830047EAAB /* WidgetSnapshot.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -122,11 +178,30 @@
 			buildRules = (
 			);
 			dependencies = (
+				23FEDC912F9C34950047EAAB /* PBXTargetDependency */,
 			);
 			name = FolderMeter;
 			productName = FolderMeter;
 			productReference = 236237132F66730100B702E5 /* FolderMeter.app */;
 			productType = "com.apple.product-type.application";
+		};
+		23FEDC802F9C34940047EAAB /* FolderMeterWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 23FEDC932F9C34950047EAAB /* Build configuration list for PBXNativeTarget "FolderMeterWidgetExtension" */;
+			buildPhases = (
+				23FEDC7D2F9C34940047EAAB /* Sources */,
+				23FEDC7E2F9C34940047EAAB /* Frameworks */,
+				23FEDC7F2F9C34940047EAAB /* Resources */,
+				23FEDC9B2F9C36000047EAAB /* Sync Version with App */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FolderMeterWidgetExtension;
+			productName = FolderMeterWidgetExtension;
+			productReference = 23FEDC812F9C34940047EAAB /* FolderMeterWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -140,6 +215,9 @@
 				TargetAttributes = {
 					236237122F66730100B702E5 = {
 						CreatedOnToolsVersion = 15.2;
+					};
+					23FEDC802F9C34940047EAAB = {
+						CreatedOnToolsVersion = 15.4;
 					};
 				};
 			};
@@ -157,6 +235,7 @@
 			projectRoot = "";
 			targets = (
 				236237122F66730100B702E5 /* FolderMeter */,
+				23FEDC802F9C34940047EAAB /* FolderMeterWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -172,7 +251,38 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		23FEDC7F2F9C34940047EAAB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		23FEDC9B2F9C36000047EAAB /* Sync Version with App */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(PROJECT_FILE_PATH)/project.pbxproj",
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Sync Version with App";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/bin/sh \"$SRCROOT/FolderMeterWidget/sync-version.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		2362370F2F66730100B702E5 /* Sources */ = {
@@ -183,10 +293,28 @@
 				236237362F66743C00B702E5 /* FolderMonitor.swift in Sources */,
 				236237342F66742900B702E5 /* FolderMeterApp.swift in Sources */,
 				2362373D2F66746000B702E5 /* MenuBarLabel.swift in Sources */,
+				23FEDC992F9C35F20047EAAB /* WidgetSnapshot.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		23FEDC7D2F9C34940047EAAB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				23FEDC972F9C34990047EAAB /* FolderMeterWidget.swift in Sources */,
+				23FEDC982F9C34AA0047EAAB /* WidgetSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		23FEDC912F9C34950047EAAB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 23FEDC802F9C34940047EAAB /* FolderMeterWidgetExtension */;
+			targetProxy = 23FEDC902F9C34950047EAAB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		236237202F66730100B702E5 /* Debug */ = {
@@ -324,7 +452,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 0.9;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"FolderMeter/Preview Content\"";
 				ENABLE_APP_SANDBOX = YES;
@@ -349,7 +477,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.9;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.fainimade.foldermeter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -370,7 +498,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 0.9;
+				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"FolderMeter/Preview Content\"";
 				ENABLE_APP_SANDBOX = YES;
@@ -395,11 +523,75 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.9;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.fainimade.foldermeter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		23FEDC942F9C34950047EAAB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = FolderMeterWidget/FolderMeterWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FolderMeterWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FolderMeter;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 FAINI MADE. All rights reserved.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fainimade.foldermeter.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		23FEDC952F9C34950047EAAB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = FolderMeterWidget/FolderMeterWidget.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FolderMeterWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FolderMeter;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 FAINI MADE. All rights reserved.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fainimade.foldermeter.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -422,6 +614,15 @@
 			buildConfigurations = (
 				236237232F66730100B702E5 /* Debug */,
 				236237242F66730100B702E5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		23FEDC932F9C34950047EAAB /* Build configuration list for PBXNativeTarget "FolderMeterWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				23FEDC942F9C34950047EAAB /* Debug */,
+				23FEDC952F9C34950047EAAB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

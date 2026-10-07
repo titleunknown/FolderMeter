@@ -1,6 +1,7 @@
 import Foundation
 import AppKit
 import CoreServices
+import WidgetKit
 
 // MARK: - Models
 
@@ -162,6 +163,11 @@ class FolderMonitor: ObservableObject {
     private var eventStream: FSEventStreamRef?
     private let watchQueue = DispatchQueue(label: "com.foldermeter.watcher", qos: .background)
     private var debounceTask: Task<Void, Never>?
+    private var widgetReloadTask: Task<Void, Never>?
+    private var lastWidgetReload: Date = .distantPast
+    // WidgetKit rations reloads, so a busy shoot (a scan every second or two)
+    // is coalesced into at most one widget refresh per interval.
+    private static let widgetReloadInterval: TimeInterval = 30
 
     init() {
         if let bookmarkData = UserDefaults.standard.data(forKey: "watchedFolderBookmark") {
@@ -181,7 +187,12 @@ class FolderMonitor: ObservableObject {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            guard let self, let root = self.rootPath else { return }
+            guard let self else { return }
+            guard let root = self.rootPath else {
+                // Folder access was lost since last launch — don't leave the widget showing it.
+                self.clearWidgetSnapshot()
+                return
+            }
             self.startScan(root: root)
             self.startWatching(root: root)
         }
@@ -233,6 +244,8 @@ class FolderMonitor: ObservableObject {
         sessionMode = .none
         totalSize = 0; totalRawCount = 0; totalJpgCount = 0; totalTiffCount = 0
         subfolders = []
+        skipWidgetThrottle()
+        clearWidgetSnapshot()
     }
 
     func forceRefresh() {
@@ -285,6 +298,7 @@ class FolderMonitor: ObservableObject {
         // that path was started twice, so one stop leaves it active with count 1.
         rootPath?.stopAccessingSecurityScopedResource()
         rootPath = url
+        skipWidgetThrottle()
         startScan(root: url)
         startWatching(root: url)
     }
@@ -296,7 +310,8 @@ class FolderMonitor: ObservableObject {
             let mode = detectMode(root: r)
             let result = scan(mode: mode)
             await MainActor.run { [weak self] in
-                guard let self else { return }
+                // Drop results for a folder that was changed or removed mid-scan.
+                guard let self, self.rootPath == r else { return }
                 self.sessionMode = mode
                 self.totalSize = result.totalSize
                 self.totalRawCount = result.rawCount
@@ -304,8 +319,60 @@ class FolderMonitor: ObservableObject {
                 self.totalTiffCount = result.tiffCount
                 self.subfolders = result.folders
                 self.isLoading = false
+                self.publishWidgetSnapshot()
             }
         }
+    }
+
+    // MARK: - Widget
+
+    private func publishWidgetSnapshot() {
+        guard let root = rootPath else { return }
+        let isCaptureOne: Bool
+        if case .captureOne = sessionMode { isCaptureOne = true } else { isCaptureOne = false }
+        WidgetSnapshot(
+            folderName: root.lastPathComponent,
+            isCaptureOne: isCaptureOne,
+            totalSize: totalSize,
+            rawCount: totalRawCount,
+            jpgCount: totalJpgCount,
+            tiffCount: totalTiffCount,
+            folders: subfolders.map {
+                WidgetFolder(name: $0.name, size: $0.size, fileCount: $0.fileCount, rawCount: $0.rawCount, jpgCount: $0.jpgCount, tiffCount: $0.tiffCount)
+            },
+            updatedAt: Date()
+        ).save()
+        scheduleWidgetReload()
+    }
+
+    private func clearWidgetSnapshot() {
+        WidgetSnapshot.clear()
+        scheduleWidgetReload()
+    }
+
+    /// Reloads the widget now if it hasn't been reloaded recently, otherwise once
+    /// the interval has passed. The widget reads the snapshot file at reload
+    /// time, so a single pending reload always picks up the latest scan.
+    private func scheduleWidgetReload() {
+        guard widgetReloadTask == nil else { return }
+        let wait = max(0, Self.widgetReloadInterval - Date().timeIntervalSince(lastWidgetReload))
+        widgetReloadTask = Task { @MainActor [weak self] in
+            if wait > 0 { try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000)) }
+            guard !Task.isCancelled else { return }
+            WidgetCenter.shared.reloadTimelines(ofKind: WidgetSnapshot.widgetKind)
+            self?.lastWidgetReload = Date()
+            self?.widgetReloadTask = nil
+        }
+    }
+
+    /// Picking or removing a folder is a deliberate change the user expects to
+    /// see right away, so the next reload goes out as soon as it's ready instead
+    /// of waiting out the throttle (and a reload still pending for the previous
+    /// folder is dropped).
+    private func skipWidgetThrottle() {
+        widgetReloadTask?.cancel()
+        widgetReloadTask = nil
+        lastWidgetReload = .distantPast
     }
 
     // Watch the whole subtree with a single FSEventStream handle rather than one

@@ -301,33 +301,6 @@ struct MenuBarView: View {
     }
 }
 
-// MARK: - Odometer Label
-
-struct OdometerLabel: View {
-    let value: String
-    let label: String
-    let color: Color
-    let size: CGFloat
-    var alignment: HorizontalAlignment = .trailing
-
-    var body: some View {
-        VStack(alignment: alignment, spacing: 1) {
-            Text(label)
-                .font(.system(size: 8, weight: .medium, design: .monospaced))
-                .foregroundStyle(.secondary)
-                .tracking(1.2)
-            Text(value)
-                .font(.system(size: size, weight: .bold, design: .monospaced))
-                .foregroundStyle(color)
-                .monospacedDigit()
-                .lineLimit(1)
-        }
-        // Never truncate the counts — keep them at their natural width so the
-        // stats area scales to fit the numbers instead of clipping them to "84…".
-        .fixedSize(horizontal: true, vertical: false)
-    }
-}
-
 // MARK: - Folder Row
 
 struct FolderRow: View {
@@ -339,15 +312,7 @@ struct FolderRow: View {
         return Double(folder.size) / Double(totalSize)
     }
 
-    private var barColor: Color {
-        switch folder.name {
-        case "Capture": return .orange
-        case "Output":  return .blue
-        case "Trash":   return .red
-        case "Selects": return .green
-        default:        return .secondary
-        }
-    }
+    private var barColor: Color { FolderStyle.color(for: folder.name) }
 
     var body: some View {
         Button {
@@ -443,13 +408,5 @@ struct FolderRow: View {
         .accessibilityLabel("Open folder: \(folder.name)")
     }
 
-    private var folderIcon: String {
-        switch folder.name {
-        case "Capture": return "camera.aperture"
-        case "Output":  return "arrow.up.doc"
-        case "Trash":   return "trash"
-        case "Selects": return "star"
-        default:        return "folder"
-        }
-    }
+    private var folderIcon: String { FolderStyle.icon(for: folder.name) }
 }

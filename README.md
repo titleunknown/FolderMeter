@@ -31,6 +31,7 @@
 - **RAW, JPG & TIFF counts** — tracks image file types separately across the whole session
 - **Per-subfolder breakdown** — size bars, folder counts, file type stats per folder
 - **CaptureOne folder excluded** — proxy caches and catalog files don't skew your numbers
+- **Desktop widgets** — small, medium and large widgets for your desktop or Notification Center
 - **Persistent** — remembers your folder across launches
 - Menu bar only — no dock icon, no ⌘-Tab clutter
 
@@ -43,7 +44,7 @@
 The easiest way to get started is to download the pre-built app directly from the [Releases](../../releases/latest) page. No Xcode required.
 
 1. Download `FolderMeter.zip` from the latest release
-2. Unzip and move `FolderMeter.app` to your Applications folder
+2. Unzip and move `FolderMeter.app` to your Applications folder (the widgets won't work reliably if you run it straight from Downloads)
 3. Launch it
 
 ### First Launch
@@ -62,8 +63,27 @@ Requires macOS 14.0+ and Xcode 15+.
 
 1. Clone the repo
 2. Open `FolderMeter.xcodeproj` in Xcode
-3. Set your development team in **Signing & Capabilities**
+3. Set your development team in **Signing & Capabilities** for both the `FolderMeter` and `FolderMeterWidgetExtension` targets — the app group they share is derived from your team ID automatically
 4. Build & Run (`⌘R`)
+
+To release a new version, bump **Version** and **Build** on the `FolderMeter` target only; the widget picks them up at build time.
+
+---
+
+## Desktop Widgets
+
+FolderMeter includes widgets that show your session at a glance without opening the menu bar:
+
+| Size | Shows |
+|---|---|
+| Small | Session name, total size, RAW / JPG / TIFF counts |
+| Medium | Everything in Small, plus a size bar for each folder |
+| Large | Everything in Medium, with file counts for each folder |
+
+**To add one:** right-click your desktop → **Edit Widgets**, search for **FolderMeter**, and drag in the size you want. You can also add them to Notification Center.
+
+- Widgets update whenever FolderMeter finishes a scan — immediately when you pick a new folder, and at most every 30 seconds while files are arriving during a shoot. macOS limits how often widgets can refresh, so the menu bar stays the live view.
+- FolderMeter needs to be running for the widgets to stay current. Each widget shows when it was last updated.
 
 ---
 

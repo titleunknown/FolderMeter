@@ -1,7 +1,9 @@
 import SwiftUI
+import ServiceManagement
 
 struct MenuBarView: View {
     @EnvironmentObject var monitor: FolderMonitor
+    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -32,9 +34,12 @@ struct MenuBarView: View {
                 Divider().padding(.horizontal, 12)
             }
 
-            footerActions
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+            VStack(alignment: .leading, spacing: 8) {
+                footerActions
+                launchAtLoginToggle
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
 
             // About
             Divider().padding(.horizontal, 12)
@@ -46,6 +51,37 @@ struct MenuBarView: View {
         .background(.regularMaterial)
         .onAppear {
             monitor.forceRefresh()
+            // The user can also change this in System Settings → Login Items.
+            launchAtLogin = SMAppService.mainApp.status == .enabled
+        }
+    }
+
+    // MARK: - Launch at Login
+
+    private var launchAtLoginToggle: some View {
+        Toggle("Launch at Login", isOn: Binding(get: { launchAtLogin }, set: setLaunchAtLogin))
+            .toggleStyle(.checkbox)
+            .font(.system(size: 12))
+            .foregroundStyle(.secondary)
+            .help("Start FolderMeter when you log in, so your widgets stay current after a restart")
+    }
+
+    private func setLaunchAtLogin(_ enabled: Bool) {
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            print("Failed to update login item: \(error)")
+        }
+        // Show what macOS actually did, which may differ from what was asked.
+        let status = SMAppService.mainApp.status
+        launchAtLogin = status == .enabled
+        // Blocked in System Settings: only the user can turn it back on there.
+        if enabled && status == .requiresApproval {
+            SMAppService.openSystemSettingsLoginItems()
         }
     }
 

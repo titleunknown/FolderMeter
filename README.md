@@ -83,7 +83,8 @@ FolderMeter includes widgets that show your session at a glance without opening 
 **To add one:** right-click your desktop → **Edit Widgets**, search for **FolderMeter**, and drag in the size you want. You can also add them to Notification Center.
 
 - Widgets update whenever FolderMeter finishes a scan — immediately when you pick a new folder, and at most every 30 seconds while files are arriving during a shoot. macOS limits how often widgets can refresh, so the menu bar stays the live view.
-- FolderMeter needs to be running for the widgets to stay current. Each widget shows when it was last updated.
+- FolderMeter also refreshes the widgets when your Mac wakes and once an hour, which helps them recover if macOS leaves one blank.
+- FolderMeter needs to be running for the widgets to stay current, so turn on **Launch at Login** in the menu to keep them going after a restart. Each widget shows when it was last updated.
 
 ---
 

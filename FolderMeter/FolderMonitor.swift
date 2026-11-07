@@ -168,6 +168,13 @@ class FolderMonitor: ObservableObject {
     // WidgetKit rations reloads, so a busy shoot (a scan every second or two)
     // is coalesced into at most one widget refresh per interval.
     private static let widgetReloadInterval: TimeInterval = 30
+    private var wakeRefreshTask: Task<Void, Never>?
+    private var widgetHeartbeatTask: Task<Void, Never>?
+    // Without an app-side reload, a widget that chronod failed to load stays
+    // black until chronod's own retry (about an hour) succeeds.
+    private static let widgetHeartbeatInterval: TimeInterval = 60 * 60
+    // Lets the system settle after waking before asking chronod to reload.
+    private static let wakeRefreshDelay: TimeInterval = 5
 
     init() {
         if let bookmarkData = UserDefaults.standard.data(forKey: "watchedFolderBookmark") {
@@ -188,6 +195,7 @@ class FolderMonitor: ObservableObject {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             guard let self else { return }
+            self.startWidgetRecovery()
             guard let root = self.rootPath else {
                 // Folder access was lost since last launch — don't leave the widget showing it.
                 self.clearWidgetSnapshot()
@@ -348,6 +356,41 @@ class FolderMonitor: ObservableObject {
     private func clearWidgetSnapshot() {
         WidgetSnapshot.clear()
         scheduleWidgetReload()
+    }
+
+    /// Scans only trigger on file changes, so an idle folder would never send
+    /// another reload. Waking the Mac and an hourly heartbeat send one anyway,
+    /// which is what lets a black widget recover without the user changing folders.
+    private func startWidgetRecovery() {
+        let center = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.didWakeNotification, NSWorkspace.screensDidWakeNotification, NSWorkspace.sessionDidBecomeActiveNotification] {
+            center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor in self?.scheduleWakeRefresh() }
+            }
+        }
+        widgetHeartbeatTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: UInt64(Self.widgetHeartbeatInterval * 1_000_000_000))
+                guard !Task.isCancelled else { return }
+                self?.scheduleWidgetReload()
+            }
+        }
+    }
+
+    /// One wake can post several of these notifications, so they share a single
+    /// delayed refresh. Rescans too, since files may have changed during sleep.
+    private func scheduleWakeRefresh() {
+        wakeRefreshTask?.cancel()
+        wakeRefreshTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(Self.wakeRefreshDelay * 1_000_000_000))
+            guard !Task.isCancelled, let self else { return }
+            self.skipWidgetThrottle()
+            if let root = self.rootPath {
+                self.startScan(root: root)
+            } else {
+                self.scheduleWidgetReload()
+            }
+        }
     }
 
     /// Reloads the widget now if it hasn't been reloaded recently, otherwise once
